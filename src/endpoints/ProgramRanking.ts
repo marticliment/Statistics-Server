@@ -27,12 +27,10 @@ export class ProgramRanking
                     const combined_program_id = Utils.GetProgramUniqueId(program_id, manager, source);
 
                     MainDB.InstallProgram(user_id, combined_program_id);
-                    res.statusCode = 200;
                     res.end();
                 }
                 catch (err)
                 {
-                    res.statusCode = 500;
                     console.error(err);
                 }
             });

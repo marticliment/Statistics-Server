@@ -21,14 +21,12 @@ export class UserActivity
                 try {
                     const id = Utils.ProcessUserId(Utils.GetPostParameter(body, "identifier"));                    
                     const version = Utils.GetPostParameter(body, "version");
-                    
+
                     MainDB.RegisterUser(id, new Date(), version);
-                    res.statusCode = 200;
                     res.end();
                 } 
                 catch (err)
                 {
-                    res.statusCode = 500;
                     console.error(err);
                 }
             });
