@@ -19,11 +19,12 @@ export class UserActivity
                 try {
                     const postParams = querystring.parse(body);
                     const id = postParams["identifier"] as string;
-                    
                     if(typeof(id) !== 'string') throw new Error("Null identifier");
-                    console.log(postParams);
-                    ActiveUsersDB.Add(id, new Date());
 
+                    const version = postParams["version"] as string;
+                    if(typeof(version) !== 'string') throw new Error("Null version");
+                    
+                    ActiveUsersDB.Add(id, new Date(), version);
                     res.statusCode = 200;
                     res.end();
                 } 
