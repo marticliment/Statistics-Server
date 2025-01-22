@@ -11,7 +11,7 @@ export class GenerateReport
     {
         res.statusCode = 200;
 
-        MainDB.Purge(this.activity_period_ms);
+        MainDB.Purge();
         res.write(JSON.stringify({
             active_users: MainDB.GetActiveCount(),
             active_versions: MainDB.GetVersionPercent(),

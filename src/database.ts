@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import { Utils } from './endpoints/Utils.ts';
+import { Settings } from './Settings.ts';
 
 export class MainDB {
     private static activeUsers: Map<string, number> = new Map<string, number>();
@@ -15,8 +16,8 @@ export class MainDB {
         this.activeVersions.set(identifier, version);
     }
 
-    static Purge(activity_period_ms: number) {
-        const tenDaysAgo = (new Date()).getTime() - activity_period_ms;
+    static Purge() {
+        const tenDaysAgo = (new Date()).getTime() - (Settings.USER_ACTIVITY_PERIOD * 1000);
         this.activeUsers.forEach((date, identifier) => {
             if (date < tenDaysAgo) {
                 this.activeUsers.delete(identifier);

@@ -68,14 +68,17 @@ if(Settings.IS_DEBUG)
     console.error("@");
 }
 
-
-setInterval(() => MainDB.SaveToDisk(), Settings.SAVE_ON_DISK_INTERVAL * 1000);
-setInterval(() => MainDB.ClearRecentlyInstalledCache(), Settings.INSTALL_PROGRAMS_CACHE_CLEAN_INTERVAL* 1000)
-
 console.log("Retrieving data from disk...")
 if (!fs.existsSync('data')) fs.mkdirSync('data');
 MainDB.LoadFromDisk();
 console.log("Retrieved data from disk. Starting server...")
+
+// Purge inactive users.
+MainDB.Purge();
+
+setInterval(() => MainDB.SaveToDisk(), Settings.SAVE_ON_DISK_INTERVAL * 1000);
+setInterval(() => MainDB.ClearRecentlyInstalledCache(), Settings.INSTALL_PROGRAMS_CACHE_CLEAN_INTERVAL* 1000)
+setInterval(() => MainDB.Purge(), Settings.INACTIVE_USER_PURGE_INTERVAL * 1000)
 
 server.listen(Settings.PORT, Settings.HOSTNAME, () => {
     console.log(`Server running at http://${Settings.HOSTNAME}:${Settings.PORT}/`);

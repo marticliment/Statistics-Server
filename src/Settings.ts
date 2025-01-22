@@ -12,4 +12,9 @@ export class Settings
     // The interval of time in which installed programs get cached
     static INSTALL_PROGRAMS_CACHE_CLEAN_INTERVAL = 3600 * 24 * 10;
 
+    // An active user is a user who has pinged the API in the last USER_ACTIVITY_PERIOD seconds
+    static USER_ACTIVITY_PERIOD = 3600 * 24 * 10;
+
+    // The interval of time in which inactive users are purged
+    static INACTIVE_USER_PURGE_INTERVAL = 3600;
 }
