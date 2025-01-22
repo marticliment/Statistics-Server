@@ -1,7 +1,5 @@
 
 import querystring from 'querystring';
-import http from 'http';
-import { MainDB } from '../database.ts';
 import crypto from 'crypto';
 
 

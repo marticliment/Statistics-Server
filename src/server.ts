@@ -1,15 +1,12 @@
-// @ts-ignore
 import http from 'http';
 import { Health } from './endpoints/Health.ts';
 import { UserActivity } from './endpoints/UserActivity.ts';
 import { MainDB } from './database.ts'
 import { GenerateReport } from './endpoints/GenerateReport.ts';
 import fs from 'fs';
-import path from 'path';
 import { ProgramRanking } from './endpoints/ProgramRanking.ts';
-
-const hostname = '127.0.0.1';
-const port = 3000;
+import { ActiveManagers } from './endpoints/ActiveManagers.ts';
+import { Settings } from './Settings.ts';
 
 const server = http.createServer((req, res) => {
     try 
@@ -26,7 +23,7 @@ const server = http.createServer((req, res) => {
                 break;
 
             case "/activity":
-                UserActivity.AddUser(req, res);
+                UserActivity.Update(req, res);
                 break;
 
             case "/report":
@@ -34,13 +31,23 @@ const server = http.createServer((req, res) => {
                 break;
 
             case "/install":
-                ProgramRanking.InstallProgram(req, res);
+                ProgramRanking.Update_Install(req, res);
+                break;
+
+            case "/managers":
+                ActiveManagers.Update(req, res);
                 break;
                 
             default:
-                res.setHeader('Content-Type', 'text/html');
-                res.write("<i>ligma</i>");
-                console.error(`unknown endpoint ${req.url}`)
+                if(Settings.IS_DEBUG) 
+                {
+                    res.setHeader('Content-Type', 'text/html');
+                    res.write("<i>ligma</i>");
+                    console.error(`unknown endpoint ${req.url}`)
+                } else {
+                    res.statusCode = 500;
+                    res.end();
+                }
                 break;
         }
         res.end();
@@ -53,14 +60,14 @@ const server = http.createServer((req, res) => {
 
 
 
-setInterval(() => MainDB.SaveToDisk(), 10 * 1000);
-setInterval(() => MainDB.ClearRecentlyInstalledCache(), 24 * 36000 * 1000)
+setInterval(() => MainDB.SaveToDisk(), Settings.SAVE_ON_DISK_INTERVAL * 1000);
+setInterval(() => MainDB.ClearRecentlyInstalledCache(), Settings.INSTALL_PROGRAMS_CACHE_CLEAN_INTERVAL* 1000)
 
 console.log("Retrieving data from disk...")
 if (!fs.existsSync('data')) fs.mkdirSync('data');
 MainDB.LoadFromDisk();
 console.log("Retrieved data from disk. Starting server...")
 
-server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
+server.listen(Settings.PORT, Settings.HOSTNAME, () => {
+    console.log(`Server running at http://${Settings.HOSTNAME}:${Settings.PORT}/`);
 });

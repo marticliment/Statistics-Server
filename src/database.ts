@@ -8,6 +8,8 @@ export class MainDB {
     private static recentlyInstalled: Map<string, Set<string>> = new Map<string, Set<string>>(); // volatile
     private static installedRanking: Map<string, number> = new Map<string, number>();
 
+    private static activeManagers: Map<string, number> = new Map<string, number>();
+
     static RegisterUser(identifier: string, date: Date, version: string) {
         this.activeUsers.set(identifier, date.getTime());
         this.activeVersions.set(identifier, version);
@@ -19,6 +21,7 @@ export class MainDB {
             if (date < tenDaysAgo) {
                 this.activeUsers.delete(identifier);
                 this.activeVersions.delete(identifier);
+                this.activeManagers.delete(identifier);
                 console.info(`Deleting user ${identifier} from the active list`)
             }
         });
@@ -65,6 +68,32 @@ export class MainDB {
         return result;
     }
 
+
+    static SetActiveManagers(identifier: string, magicValue: number)
+    {
+        // Check if the program has already been installed by the user
+        if(!this.activeUsers.has(identifier)) { console.warn(`User ${identifier} has not been marked as active`); return; } ;
+
+        this.activeManagers.set(identifier, magicValue);
+    }
+
+    static GetActiveManagerPercent(): number[]
+    {
+        // 32 possible values
+        let result = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+        // For each user, analyze enabled managers
+        this.activeManagers.forEach((magicValue, identifier) => {
+            for (let i = 0; i < 32; i++) if (magicValue & (1 << i)) result[i]++;
+        });
+
+        // Calculate percent
+        for(let i = 0; i < 32; i++) result[i] = (result[i]*100) / this.activeManagers.size;
+
+        return result;
+    }
+
+
     static GetProgramRanking(max_amount: number): (string | number)[][]
     {
         let sortedRanking = Array.from(this.installedRanking.entries())
@@ -105,6 +134,16 @@ export class MainDB {
                 });
                 console.log(" - installedRanking was loaded from data/InstallRanking.json");
             }
+            
+            if (fs.existsSync('data/ActiveManagers.json')) {
+                this.activeManagers.clear();
+                const data = fs.readFileSync('data/ActiveManagers.json', 'utf-8');
+                const parsedData: { [key: string]: number } = JSON.parse(data);
+                Object.entries(parsedData).forEach(([identifier, magicValue]) => {
+                    this.activeManagers.set(identifier, magicValue);
+                });
+                console.log(" - activeManagers was loaded from data/ActiveManagers.json");
+            }
         } catch (err) {
             console.warn(`Could not load ActiveUsers from disk due to ${err}`);
         }
@@ -132,6 +171,13 @@ export class MainDB {
         });
         fs.writeFileSync('data/InstallRanking.json', JSON.stringify(installed_ranking, null, 4), 'utf-8');
         console.log(" - installedRanking was saved to data/InstallRanking.json");
+        
+        const active_managers: { [key: string]: number } = {};
+        this.activeManagers.forEach((magicValue, identifier) => {
+            active_managers[identifier] = magicValue;
+        });
+        fs.writeFileSync('data/ActiveManagers.json', JSON.stringify(active_managers, null, 4), 'utf-8');
+        console.log(" - activeManagers was saved to data/ActiveManagers.json");
         console.log('Data saved to disk.');
     }
 

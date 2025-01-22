@@ -1,15 +1,11 @@
-
-import querystring from 'querystring';
 import http from 'http';
 import { MainDB } from '../database.ts';
-import crypto from 'crypto';
-import { UserActivity } from './UserActivity.ts';
 import { Utils } from './Utils.ts';
 
 
 export class ProgramRanking
 {
-    static InstallProgram(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>)
+    static Update_Install(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>)
     {
         try 
         {

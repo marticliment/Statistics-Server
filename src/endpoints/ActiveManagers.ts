@@ -4,7 +4,7 @@ import { MainDB } from '../database.ts';
 import { Utils } from './Utils.ts';
 
 
-export class UserActivity
+export class ActiveManagers
 {
     static Update(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>)
     {
@@ -17,12 +17,12 @@ export class UserActivity
 
             req.on('end', () => {
                 try {
-                    const id = Utils.ProcessUserId(Utils.GetPostParameter(body, "identifier"));                    
-                    const version = Utils.GetPostParameter(body, "version");
+                    const user_id = Utils.ProcessUserId(Utils.GetPostParameter(body, "identifier"));
+                    const magicValue = parseInt(Utils.GetPostParameter(body, "magicValue"));
 
-                    MainDB.RegisterUser(id, new Date(), version);
+                    MainDB.SetActiveManagers(user_id, magicValue);
                     res.end();
-                } 
+                }
                 catch (err)
                 {
                     console.error(err);
@@ -37,5 +37,6 @@ export class UserActivity
             console.error(err);
         }
     }
+
 }
 

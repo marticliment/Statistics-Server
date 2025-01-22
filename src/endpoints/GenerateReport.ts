@@ -15,6 +15,7 @@ export class GenerateReport
         res.write(JSON.stringify({
             active_users: MainDB.GetActiveCount(),
             active_versions: MainDB.GetVersionPercent(),
+            active_managers: MainDB.GetActiveManagerPercent(),
             program_ranking: MainDB.GetProgramRanking(10),
         }))
     }
