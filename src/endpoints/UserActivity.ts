@@ -2,6 +2,7 @@
 import querystring from 'querystring';
 import http from 'http';
 import { ActiveUsersDB } from '../database.ts';
+import crypto from 'crypto';
 
 
 export class UserActivity
@@ -18,8 +19,9 @@ export class UserActivity
             req.on('end', () => {
                 try {
                     const postParams = querystring.parse(body);
-                    const id = postParams["identifier"] as string;
-                    if(typeof(id) !== 'string') throw new Error("Null identifier");
+                    const raw_id = postParams["identifier"] as string;
+                    if(typeof(raw_id ) !== 'string') throw new Error("Null identifier");
+                    const id = crypto.createHash('md5').update(raw_id).digest('hex');
 
                     const version = postParams["version"] as string;
                     if(typeof(version) !== 'string') throw new Error("Null version");
