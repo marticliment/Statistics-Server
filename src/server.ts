@@ -3,6 +3,7 @@ import http from 'http';
 import { Health } from './endpoints/Health.ts';
 import { UserActivity } from './endpoints/UserActivity.ts';
 import { ActiveUsersDB } from './database.ts'
+import { GenerateReport } from './endpoints/GenerateReport.ts';
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -23,6 +24,10 @@ const server = http.createServer((req, res) => {
 
             case "/activity":
                 UserActivity.AddUser(req, res);
+                break;
+
+            case "/report":
+                GenerateReport.Respond(req, res);
                 break;
                 
             default:

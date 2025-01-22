@@ -7,9 +7,8 @@ export class ActiveUsersDB {
         this.activeUsers.set(identifier, date.getTime())
     }
 
-    static Purge(activityThreshold: number) {
-        const tenDaysAgo = (new Date()).getTime() - 1000 * 3600 * 24 * activityThreshold;
-
+    static Purge(activity_period_ms: number) {
+        const tenDaysAgo = (new Date()).getTime() - activity_period_ms;
         this.activeUsers.forEach((date, identifier) => {
             if (date < tenDaysAgo) {
                 this.activeUsers.delete(identifier);
