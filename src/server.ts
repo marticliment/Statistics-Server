@@ -59,6 +59,15 @@ const server = http.createServer((req, res) => {
 });
 
 
+if(Settings.IS_DEBUG)
+{
+    console.error("@");
+    console.error("@");
+    console.error("@        DEBUG MODE IS ENABLED");
+    console.error("@");
+    console.error("@");
+}
+
 
 setInterval(() => MainDB.SaveToDisk(), Settings.SAVE_ON_DISK_INTERVAL * 1000);
 setInterval(() => MainDB.ClearRecentlyInstalledCache(), Settings.INSTALL_PROGRAMS_CACHE_CLEAN_INTERVAL* 1000)

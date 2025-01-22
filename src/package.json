@@ -1,22 +1,25 @@
 {
-  "name": "statistics-server",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "statistics",
-    "server"
-  ],
-  "author": "Martí Climent",
-  "license": "MIT",
-  "type": "module",
-  "description": "Literally a Statistics Server",
-  "devDependencies": {
-    "@types/node": "^22.10.7"
-  },
-  "compilerOptions": {
-    "types": ["node"]
-  }
+    "name": "statistics-server",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "server": "bun server.ts",
+        "compile": "bun build server.ts --compile --outfile out/server"
+    },
+    "keywords": [
+        "statistics",
+        "server"
+    ],
+    "author": "Martí Climent",
+    "license": "MIT",
+    "type": "module",
+    "description": "Literally a Statistics Server",
+    "devDependencies": {
+        "@types/node": "^22.10.7"
+    },
+    "compilerOptions": {
+        "types": [
+            "node"
+        ]
+    }
 }
