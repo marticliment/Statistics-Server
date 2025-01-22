@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "main": "index.js",
     "scripts": {
-        "server": "bun server.ts",
+        "server": "node server.ts",
         "compile": "bun build server.ts --compile --outfile out/server"
     },
     "keywords": [
