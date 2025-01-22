@@ -2,10 +2,11 @@
 import http from 'http';
 import { Health } from './endpoints/Health.ts';
 import { UserActivity } from './endpoints/UserActivity.ts';
-import { ActiveUsersDB } from './database.ts'
+import { MainDB } from './database.ts'
 import { GenerateReport } from './endpoints/GenerateReport.ts';
 import fs from 'fs';
 import path from 'path';
+import { ProgramRanking } from './endpoints/ProgramRanking.ts';
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -31,6 +32,10 @@ const server = http.createServer((req, res) => {
             case "/report":
                 GenerateReport.Respond(req, res);
                 break;
+
+            case "/install":
+                ProgramRanking.InstallProgram(req, res);
+                break;
                 
             default:
                 res.setHeader('Content-Type', 'text/html');
@@ -48,15 +53,13 @@ const server = http.createServer((req, res) => {
 
 
 
-setInterval(() => {
-    console.log('Saving data to disk');
-    ActiveUsersDB.SaveToDisk();
-}, 1000);
+setInterval(() => MainDB.SaveToDisk(), 10 * 1000);
+setInterval(() => MainDB.ClearRecentlyInstalledCache(), 24 * 36000 * 1000)
 
-
-const dataFolderPath = path.join(__dirname, 'data');
-if (!fs.existsSync(dataFolderPath)) fs.mkdirSync(dataFolderPath);
-ActiveUsersDB.LoadFromDisk();
+console.log("Retrieving data from disk...")
+if (!fs.existsSync('data')) fs.mkdirSync('data');
+MainDB.LoadFromDisk();
+console.log("Retrieved data from disk. Starting server...")
 
 server.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);

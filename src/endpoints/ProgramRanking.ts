@@ -3,12 +3,13 @@ import querystring from 'querystring';
 import http from 'http';
 import { MainDB } from '../database.ts';
 import crypto from 'crypto';
+import { UserActivity } from './UserActivity.ts';
 import { Utils } from './Utils.ts';
 
 
-export class UserActivity
+export class ProgramRanking
 {
-    static AddUser(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>)
+    static InstallProgram(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>)
     {
         try 
         {
@@ -19,13 +20,16 @@ export class UserActivity
 
             req.on('end', () => {
                 try {
-                    const id = Utils.ProcessUserId(Utils.GetPostParameter(body, "identifier"));                    
-                    const version = Utils.GetPostParameter(body, "version");
-                    
-                    MainDB.RegisterUser(id, new Date(), version);
+                    const user_id = Utils.ProcessUserId(Utils.GetPostParameter(body, "identifier"));
+                    const program_id = Utils.GetPostParameter(body, "program");
+                    const manager = Utils.GetPostParameter(body, "manager");
+                    const source = Utils.GetPostParameter(body, "source");
+                    const combined_program_id = Utils.GetProgramUniqueId(program_id, manager, source);
+
+                    MainDB.InstallProgram(user_id, combined_program_id);
                     res.statusCode = 200;
                     res.end();
-                } 
+                }
                 catch (err)
                 {
                     res.statusCode = 500;
@@ -41,5 +45,6 @@ export class UserActivity
             console.error(err);
         }
     }
+
 }
 

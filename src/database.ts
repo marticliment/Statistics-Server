@@ -1,10 +1,14 @@
 import * as fs from 'fs';
+import { Utils } from './endpoints/Utils.ts';
 
-export class ActiveUsersDB {
+export class MainDB {
     private static activeUsers: Map<string, number> = new Map<string, number>();
     private static activeVersions: Map<string, string> = new Map<string, string>();
+    
+    private static recentlyInstalled: Map<string, Set<string>> = new Map<string, Set<string>>(); // volatile
+    private static installedRanking: Map<string, number> = new Map<string, number>();
 
-    static Add(identifier: string, date: Date, version: string) {
+    static RegisterUser(identifier: string, date: Date, version: string) {
         this.activeUsers.set(identifier, date.getTime());
         this.activeVersions.set(identifier, version);
     }
@@ -19,6 +23,33 @@ export class ActiveUsersDB {
             }
         });
     }
+
+    static InstallProgram(identifier: string, programId: string)
+    {
+        // Check if the program has already been installed by the user
+        if(!this.activeUsers.has(identifier)) { console.warn(`User ${identifier} has not been marked as active`); return; } ;
+        if(this.recentlyInstalled.get(identifier)?.has(programId) ?? false) { console.warn(`User ${identifier} already installed this program`); return; };
+
+        // Add the program to the list to prevent spamming
+        if(this.recentlyInstalled.get(identifier) == null) 
+            this.recentlyInstalled.set(identifier, new Set<string>);
+        this.recentlyInstalled.get(identifier)?.add(programId);
+        
+        // Increase by one the install ranking of this program
+        this.installedRanking.set(programId, this.installedRanking.get(programId) ?? 0 + 1);
+    }
+
+    static ClearRecentlyInstalledCache()
+    {
+        console.log("Cleaning RecentlyInstalled cache");
+        this.recentlyInstalled.clear();
+    }
+
+
+
+
+
+
 
     static GetActiveCount() {
         return this.activeUsers.size;
@@ -39,6 +70,15 @@ export class ActiveUsersDB {
         return result;
     }
 
+    static GetProgramRanking(max_amount: number): (string | number)[][]
+    {
+        let sortedRanking = Array.from(this.installedRanking.entries())
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, Math.min(this.installedRanking.size, max_amount));
+
+        return sortedRanking.map(([programId, count]) => Utils.GetProgramDataFromUniqueId(programId).concat([count]));
+    }
+
     static LoadFromDisk() {
         try {
             if (fs.existsSync('data/ActiveUsers.json')) {
@@ -48,6 +88,7 @@ export class ActiveUsersDB {
                 Object.entries(parsedData).forEach(([identifier, date]) => {
                     this.activeUsers.set(identifier, date);
                 });
+                console.log(" - activeUsers was loaded from data/ActiveUsers.json");
             }
             
             if (fs.existsSync('data/ActiveVersions.json')) {
@@ -57,6 +98,17 @@ export class ActiveUsersDB {
                 Object.entries(parsedData).forEach(([identifier, version]) => {
                     this.activeVersions.set(identifier, version);
                 });
+                console.log(" - activeVersions was loaded from data/ActiveVersions.json");
+            }
+
+            if (fs.existsSync('data/InstallRanking.json')) {
+                this.installedRanking.clear();
+                const data = fs.readFileSync('data/InstallRanking.json', 'utf-8');
+                const parsedData: { [key: string]: number } = JSON.parse(data);
+                Object.entries(parsedData).forEach(([programId, count]) => {
+                    this.installedRanking.set(programId, count);
+                });
+                console.log(" - installedRanking was loaded from data/InstallRanking.json");
             }
         } catch (err) {
             console.warn(`Could not load ActiveUsers from disk due to ${err}`);
@@ -64,24 +116,28 @@ export class ActiveUsersDB {
     }
 
     static SaveToDisk() {
+        console.log('Saving data to disk...');
         const act_data: { [key: string]: number } = {};
         this.activeUsers.forEach((date, identifier) => {
             act_data[identifier] = date;
         });
         fs.writeFileSync('data/ActiveUsers.json', JSON.stringify(act_data, null, 4), 'utf-8');
+        console.log(" - activeUsers was saved to data/ActiveUsers.json");
 
         const ver_data : { [key: string]: string } = {};
         this.activeVersions.forEach((version, identifier) => {
             ver_data[identifier] = version;
         });
         fs.writeFileSync('data/ActiveVersions.json', JSON.stringify(ver_data, null, 4), 'utf-8');
+        console.log(" - activeVersions was saved to data/ActiveVersions.json");
+
+        const installed_ranking: { [key: string]: number } = {};
+        this.installedRanking.forEach((count, programId) => {
+            installed_ranking[programId] = count;
+        });
+        fs.writeFileSync('data/InstallRanking.json', JSON.stringify(installed_ranking, null, 4), 'utf-8');
+        console.log(" - installedRanking was saved to data/InstallRanking.json");
+        console.log('Data saved to disk.');
     }
-
-}
-
-
-
-
-export class Database {
 
 }

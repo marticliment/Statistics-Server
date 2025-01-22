@@ -1,5 +1,5 @@
 import http from 'http';
-import { ActiveUsersDB } from '../database.ts';
+import { MainDB } from '../database.ts';
 
 
 export class GenerateReport
@@ -11,10 +11,11 @@ export class GenerateReport
     {
         res.statusCode = 200;
 
-        ActiveUsersDB.Purge(this.activity_period_ms);
+        MainDB.Purge(this.activity_period_ms);
         res.write(JSON.stringify({
-            active_users: ActiveUsersDB.GetActiveCount(),
-            active_versions: ActiveUsersDB.GetVersionPercent(),
+            active_users: MainDB.GetActiveCount(),
+            active_versions: MainDB.GetVersionPercent(),
+            program_ranking: MainDB.GetProgramRanking(10),
         }))
     }
 }
