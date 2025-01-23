@@ -6,7 +6,8 @@
         "server": "node Server.ts",
         "build":         "bun build Server.ts --compile --minify --outfile out/server",
         "build-win64":   "bun build Server.ts --compile --minify --outfile out/server --target bun-windows-x64-modern",
-        "build-linux64": "bun build Server.ts --compile --minify --outfile out/server --target bun-linux-x64-modern"
+        "build-linux64": "bun build Server.ts --compile --minify --outfile out/server --target bun-linux-x64-modern",
+        "apispec":       "redoc-cli bundle -o index.html apispec.yaml"
     },
     "keywords": [
         "statistics",
