@@ -17,8 +17,8 @@ export class UserActivity
 
             req.on('end', () => {
                 try {
-                    const id = Utils.ProcessUserId(Utils.GetPostParameter(body, "identifier"));                    
-                    const version = Utils.GetPostParameter(body, "version");
+                    const id = Utils.ProcessUserId(Utils.GetPostParameter(body, "clientId"));                    
+                    const version = Utils.GetPostParameter(body, "clientVersion");
                     const activeManagers = parseInt(Utils.GetPostParameter(body, "activeManagers"));
                     const activeSettings = parseInt(Utils.GetPostParameter(body, "activeSettings"));
 

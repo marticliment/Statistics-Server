@@ -16,12 +16,12 @@ export class ProgramRanking
 
             req.on('end', () => {
                 try {
-                    const user_id = Utils.ProcessUserId(Utils.GetPostParameter(body, "identifier"));
-                    const program_id = Utils.GetPostParameter(body, "program");
-                    const manager = Utils.GetPostParameter(body, "manager");
-                    const source = Utils.GetPostParameter(body, "source");
+                    const user_id = Utils.ProcessUserId(Utils.GetPostParameter(body, "clientId"));
+                    const program_id = Utils.GetPostParameter(body, "packageId");
+                    const manager = Utils.GetPostParameter(body, "managerName");
+                    const source = Utils.GetPostParameter(body, "sourceName");
+                    
                     const combined_program_id = Utils.GetProgramUniqueId(program_id, manager, source);
-
                     MainDB.InstallsRanking.Increment(combined_program_id, user_id);
                     res.end();
                 }

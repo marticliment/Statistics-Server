@@ -33,14 +33,14 @@ paths:
             schema:
               type: object
               required:
-               - identifier
-               - version
+               - clientId
+               - clientVersion
                - activeManagers
                - activeSettings
               properties:
-                identifier:
+                clientId:
                   type: string
-                version:
+                clientVersion:
                   type: string
                 activeManagers:
                   type: string
@@ -49,5 +49,46 @@ paths:
       responses:
         '200':
           description: Activity data was submitted. The addition may be ignored if the data is invalid, but the sender (you) won't be notified.
+        '500':
+          description: Internal server error
+
+  /install:
+    post:
+      summary: Submit that a client has installed a package
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+               - clientId
+               - packageId
+               - managerName
+               - sourceName
+              properties:
+                clientId:
+                  type: string
+                packageId:
+                  type: string
+                managerName:
+                  type: string
+                sourceName:
+                  type: string
+      responses:
+        '200':
+          description: Package information was submitted. The addition may be ignored if the data is invalid, but the sender (you) won't be notified. Invalid data could be, for example, when a client X submits twice the install of the same package. 
+        '500':
+          description: Internal server error
+          
+  /report:
+    get:
+      summary: Submit that a client has installed a package
+      responses:
+        '200':
+          description: The report has been generated and returned as a JSON object
+          content:
+            application/json:
+              schema:
+                type: object
         '500':
           description: Internal server error
