@@ -1,7 +1,7 @@
 
 import http from 'http';
 import { MainDB } from '../DataBase/MainDB.ts';
-import { Utils } from './Utils.ts';
+import { Utils } from '../Utils.ts';
 
 
 export class UserActivity
@@ -19,8 +19,10 @@ export class UserActivity
                 try {
                     const id = Utils.ProcessUserId(Utils.GetPostParameter(body, "identifier"));                    
                     const version = Utils.GetPostParameter(body, "version");
+                    const activeManagers = parseInt(Utils.GetPostParameter(body, "activeManagers"));
+                    const activeSettings = parseInt(Utils.GetPostParameter(body, "activeSettings"));
 
-                    MainDB.RegisterUser(id, new Date(), version);
+                    MainDB.UpdateUser(id, new Date(), version, activeManagers, activeSettings);
                     res.end();
                 } 
                 catch (err)

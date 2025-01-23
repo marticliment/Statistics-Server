@@ -1,0 +1,53 @@
+openapi: '3.0.0'
+info:
+  version: '1.0.0'
+  title: 'Statistics Server'
+  description: Literally a statisics server
+
+paths:
+  /moo:
+    get:
+      summary: Check if the server is alive
+      responses:
+        '200':
+          description: If the server moos back, it means that it is alive.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties: 
+                  message:
+                    type: string
+        '500':
+          description: Internal server error
+
+
+  /activity:
+    post:
+      summary: Submit client activity data
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+               - identifier
+               - version
+               - activeManagers
+               - activeSettings
+              properties:
+                identifier:
+                  type: string
+                version:
+                  type: string
+                activeManagers:
+                  type: string
+                activeSettings:
+                  type: string
+      responses:
+        '200':
+          description: Activity data was submitted. The addition may be ignored if the data is invalid, but the sender (you) won't be notified.
+        '500':
+          description: Internal server error

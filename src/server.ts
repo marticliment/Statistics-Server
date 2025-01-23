@@ -11,33 +11,33 @@ import { Settings } from './Settings.ts';
 const server = http.createServer((req, res) => {
     try 
     {
+        // TODO: Prevent API abuse
         res.setHeader('Content-Type', 'text/json');
         switch(req.url)
         {
-            case "/health":
+            // Check that the server is alive
+            case "/moo":
                 Health.Respond(req, res);
                 break;
 
-            case "/favicon.ico":
-                res.statusCode = 404;
-                break;
 
+
+            // Registers an user as active, and sets some values.
             case "/activity":
                 UserActivity.Update(req, res);
                 break;
 
-            case "/report":
-                GenerateReport.Respond(req, res);
-                break;
-
+            // Registers a program as installed
             case "/install":
                 ProgramRanking.Update_Install(req, res);
                 break;
 
-            case "/managers":
-                ActiveManagers.Update(req, res);
+            
+            // Generates a report of the current server data
+            case "/report":
+                GenerateReport.Respond(req, res);
                 break;
-                
+
             default:
                 if(Settings.IS_DEBUG) 
                 {
@@ -54,6 +54,10 @@ const server = http.createServer((req, res) => {
     }
     catch (ex)
     {
+        try {
+            res.statusCode = 500;
+            res.end();
+        } catch(err) { }
         console.error(`FATAL EXCEPTION ${ex}`)
     }
 });

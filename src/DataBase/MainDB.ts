@@ -9,18 +9,19 @@ export class MainDB {
     static ActiveUsers = new ValuePerUser_DB<number>("ActiveUsers");
     static ActiveVersions = new ValuePerUser_DB<string>("ActiveVersions");
     static ActiveManagers = new ValuePerUser_DB<number>("ActiveManagers");
-    // static ActiveSettings = new ValuePerUser_DB<number>("ActiveSettings");
+    static ActiveSettings = new ValuePerUser_DB<number>("ActiveSettings");
     
     static InstallsRanking = new Ranking_DB("InstalledRanking", true);
 
-    private static DB_PerUser = [this.ActiveUsers, this.ActiveVersions, this.ActiveManagers/*, ActiveSettings*/];
-    private static DB_Rankings = [this.InstallsRanking/*, ActiveSettings*/];
+    private static DB_PerUser = [this.ActiveUsers, this.ActiveVersions, this.ActiveManagers, this.ActiveSettings];
+    private static DB_Rankings = [this.InstallsRanking];
 
-    static RegisterUser(identifier: string, date: Date, version: string) 
+    static UpdateUser(identifier: string, date: Date, version: string, activeManagers: number, activeSettings: number) 
     {        
         this.ActiveUsers.Set(identifier, date.getTime());
         this.ActiveVersions.Set(identifier, version);
-
+        this.ActiveManagers.Set(identifier, activeManagers);
+        this.ActiveSettings.Set(identifier, activeSettings);
     }
 
     static PurgeUsers() {
@@ -38,7 +39,8 @@ export class MainDB {
         this.DB_Rankings.forEach((db) => db.ClearRecentAdditionsList());
     }
 
-    static LoadFromDisk() {
+    static LoadFromDisk() 
+    {
         try 
         {
             this.DB_PerUser.forEach((db) => db.LoadFromDisk())
