@@ -45,7 +45,7 @@ const server = http.createServer((req, res) => {
                     res.write("<i>ligma</i>");
                     console.error(`unknown endpoint ${req.url}`)
                 } else {
-                    res.statusCode = 500;
+                    res.statusCode = 404;
                     res.end();
                 }
                 break;
@@ -77,7 +77,7 @@ console.log("Retrieved data from disk. Starting server...")
 MainDB.Purge();
 
 setInterval(() => MainDB.SaveToDisk(), Settings.SAVE_ON_DISK_INTERVAL * 1000);
-setInterval(() => MainDB.ClearRecentlyInstalledCache(), Settings.INSTALL_PROGRAMS_CACHE_CLEAN_INTERVAL* 1000)
+setInterval(() => MainDB.ClearRankingAdditionCache(), Settings.INSTALL_PROGRAMS_CACHE_CLEAN_INTERVAL* 1000)
 setInterval(() => MainDB.Purge(), Settings.INACTIVE_USER_PURGE_INTERVAL * 1000)
 
 server.listen(Settings.PORT, Settings.HOSTNAME, () => {

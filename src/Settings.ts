@@ -5,6 +5,8 @@ export class Settings
     
     static PORT = 3000;
     static HOSTNAME = "127.0.0.1";
+    static DATA_FOLDER = "./data"
+
 
     // The interval of time in which current state is stored on disk
     static SAVE_ON_DISK_INTERVAL = 10;

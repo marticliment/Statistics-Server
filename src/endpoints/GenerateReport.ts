@@ -13,10 +13,10 @@ export class GenerateReport
 
         MainDB.Purge();
         res.write(JSON.stringify({
-            active_users: MainDB.GetActiveCount(),
-            active_versions: MainDB.GetVersionPercent(),
-            active_managers: MainDB.GetActiveManagerPercent(),
-            program_ranking: MainDB.GetProgramRanking(10),
+            active_users: MainDB.ActiveUsers.Size(),
+            active_versions: MainDB.ActiveVersions.GetReport_ByShareMap(),
+            active_managers: MainDB.ActiveManagers.GetReport_ByBitMask(),
+            program_ranking: MainDB.InstallsRanking.GetProgramRanking(10),
         }))
     }
 }

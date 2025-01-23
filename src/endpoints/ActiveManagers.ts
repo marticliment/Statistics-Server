@@ -20,7 +20,7 @@ export class ActiveManagers
                     const user_id = Utils.ProcessUserId(Utils.GetPostParameter(body, "identifier"));
                     const magicValue = parseInt(Utils.GetPostParameter(body, "magicValue"));
 
-                    MainDB.SetActiveManagers(user_id, magicValue);
+                    MainDB.ActiveManagers.Set(user_id, magicValue);
                     res.end();
                 }
                 catch (err)

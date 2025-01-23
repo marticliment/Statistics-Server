@@ -22,7 +22,7 @@ export class ProgramRanking
                     const source = Utils.GetPostParameter(body, "source");
                     const combined_program_id = Utils.GetProgramUniqueId(program_id, manager, source);
 
-                    MainDB.InstallProgram(user_id, combined_program_id);
+                    MainDB.InstallsRanking.Increment(combined_program_id, user_id);
                     res.end();
                 }
                 catch (err)
