@@ -1,7 +1,7 @@
 
 import http from 'http';
-import { MainDB } from '../database.ts';
-import { Utils } from './Utils.ts';
+import { MainDB } from '../DataBase/MainDB.ts';
+import { Utils } from '../Utils.ts';
 
 
 export class ActiveManagers

@@ -1,6 +1,6 @@
 
 import http from 'http';
-import { MainDB } from '../database.ts';
+import { MainDB } from '../DataBase/MainDB.ts';
 import { Utils } from './Utils.ts';
 
 

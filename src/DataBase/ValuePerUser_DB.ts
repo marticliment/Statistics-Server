@@ -1,7 +1,7 @@
 import * as fs from 'fs';
-import { DBEntry } from './DBentry.ts'
+import { IDBEntry } from './IDBentry.ts'
 
-export class ValuePerUser_DB<value_t> implements DBEntry
+export class ValuePerUser_DB<value_t> implements IDBEntry
 {
     private data_file: string;
     private data_name: string;

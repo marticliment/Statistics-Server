@@ -1,10 +1,10 @@
 import * as fs from 'fs';
-import { DBEntry } from './DBentry.ts'
+import { IDBEntry } from './IDBentry.ts'
 import { Settings } from '../Settings.ts';
-import { MainDB } from '../database.ts';
-import { Utils } from '../endpoints/Utils.ts';
+import { MainDB } from './MainDB.ts';
+import { Utils } from '../Utils.ts';
 
-export class Ranking_DB implements DBEntry
+export class Ranking_DB implements IDBEntry
 {
     private data_file: string;
     private data_name: string;

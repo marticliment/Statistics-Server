@@ -1,11 +1,11 @@
 import http from 'http';
-import { Health } from './endpoints/Health.ts';
-import { UserActivity } from './endpoints/UserActivity.ts';
-import { MainDB } from './database.ts'
-import { GenerateReport } from './endpoints/GenerateReport.ts';
+import { Health } from './Endpoints/Health.ts';
+import { UserActivity } from './Endpoints/UserActivity.ts';
+import { MainDB } from './DataBase/MainDB.ts'
+import { GenerateReport } from './Endpoints/GenerateReport.ts';
 import fs from 'fs';
-import { ProgramRanking } from './endpoints/ProgramRanking.ts';
-import { ActiveManagers } from './endpoints/ActiveManagers.ts';
+import { ProgramRanking } from './Endpoints/ProgramRanking.ts';
+import { ActiveManagers } from './Endpoints/ActiveManagers.ts';
 import { Settings } from './Settings.ts';
 
 const server = http.createServer((req, res) => {
@@ -68,17 +68,17 @@ if(Settings.IS_DEBUG)
     console.error("@");
 }
 
-console.log("Retrieving data from disk...")
-if (!fs.existsSync('data')) fs.mkdirSync('data');
+if (!fs.existsSync(Settings.DATA_FOLDER)) 
+    fs.mkdirSync(Settings.DATA_FOLDER);
+
 MainDB.LoadFromDisk();
-console.log("Retrieved data from disk. Starting server...")
 
 // Purge inactive users.
-MainDB.Purge();
+MainDB.PurgeUsers();
 
 setInterval(() => MainDB.SaveToDisk(), Settings.SAVE_ON_DISK_INTERVAL * 1000);
 setInterval(() => MainDB.ClearRankingAdditionCache(), Settings.INSTALL_PROGRAMS_CACHE_CLEAN_INTERVAL* 1000)
-setInterval(() => MainDB.Purge(), Settings.INACTIVE_USER_PURGE_INTERVAL * 1000)
+setInterval(() => MainDB.PurgeUsers(), Settings.INACTIVE_USER_PURGE_INTERVAL * 1000)
 
 server.listen(Settings.PORT, Settings.HOSTNAME, () => {
     console.log(`Server running at http://${Settings.HOSTNAME}:${Settings.PORT}/`);

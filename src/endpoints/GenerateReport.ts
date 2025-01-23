@@ -1,5 +1,5 @@
 import http from 'http';
-import { MainDB } from '../database.ts';
+import { MainDB } from '../DataBase/MainDB.ts';
 
 
 export class GenerateReport
@@ -11,7 +11,7 @@ export class GenerateReport
     {
         res.statusCode = 200;
 
-        MainDB.Purge();
+        MainDB.PurgeUsers();
         res.write(JSON.stringify({
             active_users: MainDB.ActiveUsers.Size(),
             active_versions: MainDB.ActiveVersions.GetReport_ByShareMap(),

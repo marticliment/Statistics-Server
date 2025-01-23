@@ -1,8 +1,8 @@
 import * as fs from 'fs';
-import { Utils } from './endpoints/Utils.ts';
-import { Settings } from './Settings.ts';
-import { ValuePerUser_DB } from './data_structures/ValuePerUser_DB.ts';
-import { Ranking_DB } from './data_structures/Ranking_DB.ts';
+import { Utils } from '../Utils.ts';
+import { Settings } from '../Settings.ts';
+import { ValuePerUser_DB } from './ValuePerUser_DB.ts';
+import { Ranking_DB } from './Ranking_DB.ts';
 
 export class MainDB {
 
@@ -23,7 +23,7 @@ export class MainDB {
 
     }
 
-    static Purge() {
+    static PurgeUsers() {
         const tenDaysAgo = (new Date()).getTime() - (Settings.USER_ACTIVITY_PERIOD * 1000);
         this.ActiveUsers.Data.forEach((date, identifier) => {
             if (date < tenDaysAgo) {

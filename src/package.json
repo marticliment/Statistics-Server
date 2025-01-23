@@ -3,8 +3,10 @@
     "version": "1.0.0",
     "main": "index.js",
     "scripts": {
-        "server": "node server.ts",
-        "compile": "bun build server.ts --compile --outfile out/server"
+        "server": "node Server.ts",
+        "build":         "bun build Server.ts --compile --minify --outfile out/server",
+        "build-win64":   "bun build Server.ts --compile --minify --outfile out/server --target bun-windows-x64-modern",
+        "build-linux64": "bun build Server.ts --compile --minify --outfile out/server --target bun-linux-x64-modern"
     },
     "keywords": [
         "statistics",
