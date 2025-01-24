@@ -1,11 +1,13 @@
 
-import querystring from 'querystring';
 import crypto from 'crypto';
+import * as http from 'http';
+import { Settings } from './Settings.ts';
 
 
 export class Utils
 {
-    static ProcessUserId(raw_id: string): string{
+    static ProcessUserId(raw_id: string): string {
+        if(raw_id == "") return raw_id;
         return crypto.createHash('md5').update(raw_id).digest('base64url')
     }
 
@@ -27,12 +29,17 @@ export class Utils
         }
     }
 
-    static GetPostParameter(body: string, key: string): string 
+    static GetHeader(req: http.IncomingMessage, key: string) : string
     {
-        const postParams = querystring.parse(body);
-        const raw_id = postParams[key] as string;
-        if(typeof(raw_id) !== 'string') throw new Error("Null value");
-        return raw_id;
+        let value = req.headers[key] || req.headers[key.toLowerCase()];
+        if (typeof value !== 'string') return "";
+        return value;
+    }
+
+    static Authenticate(token: string): boolean
+    {
+        const hash = crypto.createHash('sha256').update(token + Settings.SALT).digest('hex');
+        return hash === Settings.API_KEY_HASH;
     }
 
 }

@@ -4,10 +4,10 @@
     "main": "index.js",
     "scripts": {
         "server": "node Server.ts",
-        "build":         "bun build Server.ts --compile --minify --outfile out/server",
-        "build-win64":   "bun build Server.ts --compile --minify --outfile out/server --target bun-windows-x64-modern",
+        "build": "bun build Server.ts --compile --minify --outfile out/server",
+        "build-win64": "bun build Server.ts --compile --minify --outfile out/server --target bun-windows-x64-modern",
         "build-linux64": "bun build Server.ts --compile --minify --outfile out/server --target bun-linux-x64-modern",
-        "apispec":       "redoc-cli bundle -o index.html apispec.yaml"
+        "apispec": "redoc-cli bundle -o index.html apispec .yaml"
     },
     "keywords": [
         "statistics",
@@ -18,7 +18,7 @@
     "type": "module",
     "description": "Literally a Statistics Server",
     "devDependencies": {
-        "@types/node": "^22.10.7"
+        "@types/node": "^22.10.10"
     },
     "compilerOptions": {
         "types": [

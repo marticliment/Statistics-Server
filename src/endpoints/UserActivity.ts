@@ -10,28 +10,22 @@ export class UserActivity
     {
         try 
         {
-            if(req.method != "POST" || req.headers['content-type'] != 'application/x-www-form-urlencoded') throw new Error("Invalid request type");
+            
 
-            let body = '';
-            req.on('data', (chunk) => body += chunk.toString()); 
+            const id = Utils.ProcessUserId(Utils.GetHeader(req, "clientId"));                    
+            const version = Utils.GetHeader(req, "clientVersion");
+            const activeManagers = parseInt(Utils.GetHeader(req, "activeManagers"));
+            const activeSettings = parseInt(Utils.GetHeader(req, "activeSettings"));
 
-            req.on('end', () => {
-                try {
-                    const id = Utils.ProcessUserId(Utils.GetPostParameter(body, "clientId"));                    
-                    const version = Utils.GetPostParameter(body, "clientVersion");
-                    const activeManagers = parseInt(Utils.GetPostParameter(body, "activeManagers"));
-                    const activeSettings = parseInt(Utils.GetPostParameter(body, "activeSettings"));
-
-                    MainDB.UpdateUser(id, new Date(), version, activeManagers, activeSettings);
-                    res.end();
-                } 
-                catch (err)
-                {
-                    console.error(err);
-                }
-            });
-
-            res.statusCode = 200;
+            if(id == "" || version == "" || isNaN(activeManagers) || isNaN(activeSettings))
+            {
+                res.statusCode = 406;
+            }
+            else
+            {
+                MainDB.UpdateUser(id, new Date(), version, activeManagers, activeSettings);
+                res.statusCode = 200;
+            }
         } 
         catch (err)
         {

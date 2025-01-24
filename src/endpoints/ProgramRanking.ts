@@ -1,6 +1,7 @@
 import http from 'http';
 import { MainDB } from '../DataBase/MainDB.ts';
 import { Utils } from '../Utils.ts';
+import { version } from 'os';
 
 
 export class ProgramRanking
@@ -9,29 +10,21 @@ export class ProgramRanking
     {
         try 
         {
-            if(req.method != "POST" || req.headers['content-type'] != 'application/x-www-form-urlencoded') throw new Error("Invalid request type");
-
-            let body = '';
-            req.on('data', (chunk) => body += chunk.toString()); 
-
-            req.on('end', () => {
-                try {
-                    const user_id = Utils.ProcessUserId(Utils.GetPostParameter(body, "clientId"));
-                    const program_id = Utils.GetPostParameter(body, "packageId");
-                    const manager = Utils.GetPostParameter(body, "managerName");
-                    const source = Utils.GetPostParameter(body, "sourceName");
+            const user_id = Utils.ProcessUserId(Utils.GetHeader(req, "clientId"));
+            const program_id = Utils.GetHeader(req, "packageId");
+            const manager = Utils.GetHeader(req, "managerName");
+            const source = Utils.GetHeader(req, "sourceName");
                     
-                    const combined_program_id = Utils.GetProgramUniqueId(program_id, manager, source);
-                    MainDB.InstallsRanking.Increment(combined_program_id, user_id);
-                    res.end();
-                }
-                catch (err)
-                {
-                    console.error(err);
-                }
-            });
-
-            res.statusCode = 200;
+            if(user_id == "" || program_id == "" || manager == "" || source == "")
+            {
+                res.statusCode = 406;
+            }
+            else
+            {
+                const combined_program_id = Utils.GetProgramUniqueId(program_id, manager, source);
+                MainDB.InstallsRanking.Increment(combined_program_id, user_id);
+                res.statusCode = 200;
+            }
         } 
         catch (err)
         {

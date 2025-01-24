@@ -1,7 +1,7 @@
-openapi: '3.0.0'
+openapi: "3.0.0"
 info:
-  version: '1.0.0'
-  title: 'Statistics Server'
+  version: "1.0.0"
+  title: "Statistics Server"
   description: Literally a statisics server
 
 paths:
@@ -9,7 +9,7 @@ paths:
     get:
       summary: Check if the server is alive
       responses:
-        '200':
+        "200":
           description: If the server moos back, it means that it is alive.
           content:
             application/json:
@@ -17,78 +17,95 @@ paths:
                 type: object
                 required:
                   - message
-                properties: 
+                properties:
                   message:
                     type: string
-        '500':
+        "500":
           description: Internal server error
-
 
   /activity:
+    parameters:
+      - in: header
+        name: clientId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: clientVersion
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: activeManagers
+        required: true
+        schema:
+          type: integer
+      - in: header
+        name: activeSettings
+        required: true
+        schema:
+          type: integer
     post:
       summary: Submit client activity data
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-               - clientId
-               - clientVersion
-               - activeManagers
-               - activeSettings
-              properties:
-                clientId:
-                  type: string
-                clientVersion:
-                  type: string
-                activeManagers:
-                  type: string
-                activeSettings:
-                  type: string
       responses:
-        '200':
-          description: Activity data was submitted. The addition may be ignored if the data is invalid, but the sender (you) won't be notified.
-        '500':
-          description: Internal server error
+        "200":
+          description: Activity data was submitted.
+        "406":
+          description: Invalid or missing parameter(s).
+        "500":
+          description: Internal server error.
 
   /install:
+    parameters:
+      - in: header
+        name: clientId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: packageId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: managerName
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: sourceName
+        required: true
+        schema:
+          type: string
     post:
       summary: Submit that a client has installed a package
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-               - clientId
-               - packageId
-               - managerName
-               - sourceName
-              properties:
-                clientId:
-                  type: string
-                packageId:
-                  type: string
-                managerName:
-                  type: string
-                sourceName:
-                  type: string
       responses:
-        '200':
-          description: Package information was submitted. The addition may be ignored if the data is invalid, but the sender (you) won't be notified. Invalid data could be, for example, when a client X submits twice the install of the same package. 
-        '500':
-          description: Internal server error
-          
+        "200":
+          description: Package information was submitted. The addition may be ignored if the data is invalid, but the sender (you) won't be notified. Invalid data could be, for example, when a client X submits twice the install of the same package.
+        "406":
+          description: Invalid or missing parameter(s).
+        "500":
+          description: Internal server error.
+
   /report:
+    parameters:
+      - in: header
+        name: apiKey
+        required: true
+        schema:
+          type: string
     get:
-      summary: Submit that a client has installed a package
+      summary: Get a report of the data on the server
       responses:
-        '200':
+        "200":
           description: The report has been generated and returned as a JSON object
           content:
             application/json:
               schema:
                 type: object
-        '500':
-          description: Internal server error
+        "403":
+          description: Access denied.
+        "406":
+          description: Invalid or missing parameter(s).
+        "500":
+          description: Internal server error.

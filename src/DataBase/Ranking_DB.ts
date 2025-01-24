@@ -1,10 +1,9 @@
 import * as fs from 'fs';
-import { IDBEntry } from './IDBentry.ts'
 import { Settings } from '../Settings.ts';
 import { MainDB } from './MainDB.ts';
 import { Utils } from '../Utils.ts';
 
-export class Ranking_DB implements IDBEntry
+export class Ranking_DB
 {
     private data_file: string;
     private data_name: string;
@@ -100,7 +99,6 @@ export class Ranking_DB implements IDBEntry
         try 
         {
             console.debug(`Saving ${this.data_name} to disk, on ${this.data_file}...`);
-            this.Data.clear();
             const data_to_store: { [key: string]: number } = {};
             this.Data.forEach((value, key) => {
                 data_to_store[key] = value;

@@ -1,7 +1,6 @@
 import * as fs from 'fs';
-import { IDBEntry } from './IDBentry.ts'
 
-export class ValuePerUser_DB<value_t> implements IDBEntry
+export class ValuePerUser_DB<value_t>
 {
     private data_file: string;
     private data_name: string;
@@ -109,7 +108,6 @@ export class ValuePerUser_DB<value_t> implements IDBEntry
         try 
         {
             console.debug(`Saving ${this.data_name} to disk, on ${this.data_file}...`);
-            this.Data.clear();
             const data_to_store: { [key: string]: value_t } = {};
             this.Data.forEach((value, key) => {
                 data_to_store[key] = value;

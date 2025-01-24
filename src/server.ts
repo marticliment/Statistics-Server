@@ -4,9 +4,8 @@ import { UserActivity } from './Endpoints/UserActivity.ts';
 import { MainDB } from './DataBase/MainDB.ts'
 import { GenerateReport } from './Endpoints/GenerateReport.ts';
 import fs from 'fs';
-import { ProgramRanking } from './Endpoints/ProgramRanking.ts';
-import { ActiveManagers } from './Endpoints/ActiveManagers.ts';
 import { Settings } from './Settings.ts';
+import { ProgramRanking } from './endpoints/ProgramRanking.ts';
 
 const server = http.createServer((req, res) => {
     try 
@@ -39,14 +38,12 @@ const server = http.createServer((req, res) => {
                 break;
 
             default:
+                res.statusCode = 404;
                 if(Settings.IS_DEBUG) 
                 {
                     res.setHeader('Content-Type', 'text/html');
                     res.write("<i>ligma</i>");
                     console.error(`unknown endpoint ${req.url}`)
-                } else {
-                    res.statusCode = 404;
-                    res.end();
                 }
                 break;
         }
