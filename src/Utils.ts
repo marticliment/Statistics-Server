@@ -44,5 +44,13 @@ export class Utils
         return hash === Settings.API_KEY_HASH;
     }
 
+    static MapToObject<key_t, value_t>(m: Map<key_t, value_t>)
+    {
+        return Array.from(m).reduce((obj, [key, value]) => {
+          obj[key as any] = value;
+          return obj;
+        }, {});
+    };
+
 }
 

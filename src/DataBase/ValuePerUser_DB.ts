@@ -40,7 +40,7 @@ export class ValuePerUser_DB<value_t>
         return this.Data.size
     }
 
-    GetReport_ByShareMap(): Map<value_t, number>
+    GetReport_ByShareMap(): object
     {
         let result = new Map<value_t, number>();
 
@@ -54,16 +54,11 @@ export class ValuePerUser_DB<value_t>
             result.set(version, (count*100.0)/this.Data.size);
         });
 
-        return result;
+        return Utils.MapToObject<value_t, number>(result);
     }
 
     GetReport_ByBitMask(): number[]
-    {
-        if (typeof ({} as value_t) !== 'number') 
-        {
-            throw new Error(`Cannot call ${this.data_name}.GetReport_ByBitMask: value_t must be of type number`);
-        }
-        
+    {   
         // 32 possible values
         let result = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
