@@ -54,9 +54,14 @@ export class MainDB {
 
     static SaveToDisk() 
     {
-        try {
+        if(!Utils.UNSAVED_CHANGES) return;
+
+        try 
+        {
+            if(Settings.IS_DEBUG) console.log("Saving server state to disk...")
             this.DB_PerUser.forEach((db) => db.SaveToDisk())
             this.DB_Rankings.forEach((db) => db.SaveToDisk())
+            Utils.UNSAVED_CHANGES = false;
         } 
         catch (err)
         {

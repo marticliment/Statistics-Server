@@ -6,6 +6,8 @@ import { Settings } from './Settings.ts';
 
 export class Utils
 {
+    static UNSAVED_CHANGES = false;
+
     static ProcessUserId(raw_id: string): string {
         if(raw_id == "") return raw_id;
         return crypto.createHash('md5').update(raw_id).digest('base64url')

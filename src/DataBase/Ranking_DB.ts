@@ -50,6 +50,7 @@ export class Ranking_DB
         
         // Increase by one the install ranking of this program
         this.Data.set(value_to_increment, (this.Data.get(value_to_increment) ?? 0) + 1);
+        Utils.UNSAVED_CHANGES = true;
     }
 
     GetProgramRanking(max_amount: number): (string | number)[][]
@@ -98,13 +99,13 @@ export class Ranking_DB
     {
         try 
         {
-            console.debug(`Saving ${this.data_name} to disk, on ${this.data_file}...`);
+            // console.debug(`Saving ${this.data_name} to disk, on ${this.data_file}...`);
             const data_to_store: { [key: string]: number } = {};
             this.Data.forEach((value, key) => {
                 data_to_store[key] = value;
             });
             fs.writeFileSync(this.data_file, JSON.stringify(data_to_store, null, 4), 'utf-8');
-            console.debug(`${this.data_name} was successfully saved to disk`);            
+            // console.debug(`${this.data_name} was successfully saved to disk`);            
         } 
         catch (err)
         {

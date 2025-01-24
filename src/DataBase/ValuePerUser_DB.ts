@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import { Utils } from '../Utils.ts';
 
 export class ValuePerUser_DB<value_t>
 {
@@ -15,6 +16,7 @@ export class ValuePerUser_DB<value_t>
     Set(identifier: string, value: value_t)
     {
         this.Data.set(identifier, value);
+        Utils.UNSAVED_CHANGES = true;
     }
 
     Get(identifier: string): value_t | undefined
@@ -25,6 +27,7 @@ export class ValuePerUser_DB<value_t>
     Delete(identifier: string): void
     {
         this.Data.delete(identifier);
+        Utils.UNSAVED_CHANGES = true;
     }
 
     Has(identifier: string): boolean
@@ -107,13 +110,13 @@ export class ValuePerUser_DB<value_t>
     {
         try 
         {
-            console.debug(`Saving ${this.data_name} to disk, on ${this.data_file}...`);
+            // console.debug(`Saving ${this.data_name} to disk, on ${this.data_file}...`);
             const data_to_store: { [key: string]: value_t } = {};
             this.Data.forEach((value, key) => {
                 data_to_store[key] = value;
             });
             fs.writeFileSync(this.data_file, JSON.stringify(data_to_store, null, 4), 'utf-8');
-            console.debug(`${this.data_name} was successfully saved to disk`);            
+            // console.debug(`${this.data_name} was successfully saved to disk`);            
         } 
         catch (err)
         {
