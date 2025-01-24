@@ -1,16 +1,15 @@
 import * as fs from 'fs';
 import { Utils } from '../Utils.ts';
+import { Settings } from '../Settings.ts';
 
 export class ValuePerUser_DB<value_t>
 {
-    private data_file: string;
     private data_name: string;
     Data: Map<string, value_t> = new Map<string, value_t>(); 
 
     constructor(name: string)
     {
         this.data_name = name;
-        this.data_file = `data/${name}.json`
     }
 
     Set(identifier: string, value: value_t)
@@ -78,25 +77,25 @@ export class ValuePerUser_DB<value_t>
     {
         try 
         {
-            console.debug(`Loading data for ${this.data_name} from ${this.data_file}...`);
+            console.debug(`Loading data for ${this.data_name} from ${`${Settings.DATA_FOLDER}/${this.data_name}.json`}...`);
             this.Data.clear();
-            if (fs.existsSync(this.data_file)) 
+            if (fs.existsSync(`${Settings.DATA_FOLDER}/${this.data_name}.json`)) 
             {
-                const data = fs.readFileSync(this.data_file, 'utf-8');
+                const data = fs.readFileSync(`${Settings.DATA_FOLDER}/${this.data_name}.json`, 'utf-8');
                 const parsedData: { [key: string]: value_t} = JSON.parse(data);
                 Object.entries(parsedData).forEach(([key, value]) => {
                     this.Data.set(key, value);
                 });
-                console.debug(`${this.data_name} was loaded successfully from ${this.data_file}`);
+                console.debug(`${this.data_name} was loaded successfully from ${`${Settings.DATA_FOLDER}/${this.data_name}.json`}`);
             } 
             else 
             {
-                console.warn(`${this.data_name} was initialized empty (${this.data_file}) was not found`);
+                console.warn(`${this.data_name} was initialized empty (${`${Settings.DATA_FOLDER}/${this.data_name}.json`}) was not found`);
             }
         } 
         catch (err)
         {
-            console.error(`Failed to load data for ${this.data_name} from ${this.data_file}:`, err);
+            console.error(`Failed to load data for ${this.data_name} from ${`${Settings.DATA_FOLDER}/${this.data_name}.json`}:`, err);
         }
         
     }
@@ -105,17 +104,17 @@ export class ValuePerUser_DB<value_t>
     {
         try 
         {
-            // console.debug(`Saving ${this.data_name} to disk, on ${this.data_file}...`);
+            // console.debug(`Saving ${this.data_name} to disk, on ${`${Settings.DATA_FOLDER}/${this.data_name}.json`}...`);
             const data_to_store: { [key: string]: value_t } = {};
             this.Data.forEach((value, key) => {
                 data_to_store[key] = value;
             });
-            fs.writeFileSync(this.data_file, JSON.stringify(data_to_store, null, 4), 'utf-8');
+            fs.writeFileSync(`${Settings.DATA_FOLDER}/${this.data_name}.json`, JSON.stringify(data_to_store, null, 4), 'utf-8');
             // console.debug(`${this.data_name} was successfully saved to disk`);            
         } 
         catch (err)
         {
-            console.error(`Failed to save data for ${this.data_name} to file ${this.data_file}:`, err);
+            console.error(`Failed to save data for ${this.data_name} to file ${`${Settings.DATA_FOLDER}/${this.data_name}.json`}:`, err);
         }
     }
 }

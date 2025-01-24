@@ -5,7 +5,6 @@ import { Utils } from '../Utils.ts';
 
 export class Ranking_DB
 {
-    private data_file: string;
     private data_name: string;
     
     private Data: Map<string, number> = new Map<string, number>(); 
@@ -16,7 +15,6 @@ export class Ranking_DB
     constructor(name: string, prevent_spamming: boolean)
     {
         this.data_name = name;
-        this.data_file = `${Settings.DATA_FOLDER}/${name}.json`
         this.PREVENT_SPAMMING = prevent_spamming;
     }
 
@@ -72,25 +70,25 @@ export class Ranking_DB
     {
         try 
         {
-            console.debug(`Loading data for ${this.data_name} from ${this.data_file}...`);
+            console.debug(`Loading data for ${this.data_name} from ${`${Settings.DATA_FOLDER}/${this.data_name}.json`}...`);
             this.Data.clear();
-            if (fs.existsSync(this.data_file)) 
+            if (fs.existsSync(`${Settings.DATA_FOLDER}/${this.data_name}.json`)) 
             {
-                const data = fs.readFileSync(this.data_file, 'utf-8');
+                const data = fs.readFileSync(`${Settings.DATA_FOLDER}/${this.data_name}.json`, 'utf-8');
                 const parsedData: { [key: string]: number} = JSON.parse(data);
                 Object.entries(parsedData).forEach(([key, value]) => {
                     this.Data.set(key, value);
                 });
-                console.debug(`${this.data_name} was loaded successfully from ${this.data_file}`);
+                console.debug(`${this.data_name} was loaded successfully from ${`${Settings.DATA_FOLDER}/${this.data_name}.json`}`);
             } 
             else 
             {
-                console.warn(`${this.data_name} was initialized empty (${this.data_file}) was not found`);
+                console.warn(`${this.data_name} was initialized empty (${`${Settings.DATA_FOLDER}/${this.data_name}.json`}) was not found`);
             }
         } 
         catch (err)
         {
-            console.error(`Failed to load data for ${this.data_name} from ${this.data_file}:`, err);
+            console.error(`Failed to load data for ${this.data_name} from ${`${Settings.DATA_FOLDER}/${this.data_name}.json`}:`, err);
         }
         
     }
@@ -99,17 +97,17 @@ export class Ranking_DB
     {
         try 
         {
-            // console.debug(`Saving ${this.data_name} to disk, on ${this.data_file}...`);
+            // console.debug(`Saving ${this.data_name} to disk, on ${`${Settings.DATA_FOLDER}/${this.data_name}.json`}...`);
             const data_to_store: { [key: string]: number } = {};
             this.Data.forEach((value, key) => {
                 data_to_store[key] = value;
             });
-            fs.writeFileSync(this.data_file, JSON.stringify(data_to_store, null, 4), 'utf-8');
+            fs.writeFileSync(`${Settings.DATA_FOLDER}/${this.data_name}.json`, JSON.stringify(data_to_store, null, 4), 'utf-8');
             // console.debug(`${this.data_name} was successfully saved to disk`);            
         } 
         catch (err)
         {
-            console.error(`Failed to save data for ${this.data_name} to file ${this.data_file}:`, err);
+            console.error(`Failed to save data for ${this.data_name} to file ${`${Settings.DATA_FOLDER}/${this.data_name}.json`}:`, err);
         }
     }
 }

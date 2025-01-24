@@ -1,5 +1,28 @@
 export class Settings
 {
+    static ParseAndReadArguments()
+    {
+        const args = process.argv.slice(2);
+        for (let i = 0; i < args.length; i++) 
+        {
+            switch (args[i]) 
+            {
+                case '--port':
+                    this.PORT = parseInt(args[i + 1], 10);
+                    i++;
+                    break;
+                case '--hostname':
+                    this.HOSTNAME = args[i + 1];
+                    i++;
+                    break;
+                case '--data-folder':
+                    this.DATA_FOLDER = args[i + 1];
+                    i++;
+                    break;
+            }
+        }
+    }
+
     static IS_DEBUG = false;
 
     

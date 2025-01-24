@@ -65,6 +65,7 @@ const server = http.createServer((req, res) => {
     }
 });
 
+Settings.ParseAndReadArguments();
 
 if(Settings.IS_DEBUG)
 {

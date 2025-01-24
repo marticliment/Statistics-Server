@@ -3,11 +3,12 @@
     "version": "1.0.0",
     "main": "index.js",
     "scripts": {
-        "server": "node Server.ts",
+        "server": "bun Server.ts",
         "build": "bun build Server.ts --compile --minify --outfile out/server",
         "build-win64": "bun build Server.ts --compile --minify --outfile out/server --target bun-windows-x64-modern",
         "build-linux64": "bun build Server.ts --compile --minify --outfile out/server --target bun-linux-x64-modern",
-        "apispec": "redoc-cli bundle -o index.html apispec .yaml"
+        "apispec": "redoc-cli bundle -o index.html apispec .yaml",
+        "tests": "python3 ./test.py"
     },
     "keywords": [
         "statistics",
@@ -24,5 +25,8 @@
         "types": [
             "node"
         ]
+    },
+    "dependencies": {
+        "tsx": "^4.19.2"
     }
 }
