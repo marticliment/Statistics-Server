@@ -1,11 +1,13 @@
 export class Settings
 {
-    static IS_DEBUG = true;
+    static IS_DEBUG = false;
 
     
     static PORT = 3000;
     static HOSTNAME = "127.0.0.1";
     static DATA_FOLDER = "./data"
+
+    static REDIRECT_URL_WHEN_INVALID_ENDPOINT = "https://www.marticliment.com/unigetui"
 
     // The interval of time in which current state is stored on disk
     static SAVE_ON_DISK_INTERVAL = 2;
@@ -23,6 +25,6 @@ export class Settings
     static SALT = "2a0v4ole8ix5z"
     // Testing API KEY is "HelloWorld"
 
-    // The SHA256 of: API_KEY + SALT
+    // The SHA256 of: API_KEY + SALT (must be manually calculated and set here)
     static API_KEY_HASH = "befee34aa7e73da3381e2ceaded8b893c1a269b664ef1160ff616c3e0f06a9ef"
 }

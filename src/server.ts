@@ -32,18 +32,24 @@ const server = http.createServer((req, res) => {
                 break;
 
             
+            
             // Generates a report of the current server data
             case "/report":
                 GenerateReport.Respond(req, res);
                 break;
 
             default:
-                res.statusCode = 404;
                 if(Settings.IS_DEBUG) 
                 {
+                    res.statusCode = 404;
                     res.setHeader('Content-Type', 'text/html');
                     res.write("<i>ligma</i>");
                     console.error(`unknown endpoint ${req.url}`)
+                }
+                else
+                {
+                    res.statusCode = 307;
+                    res.setHeader("Location", Settings.REDIRECT_URL_WHEN_INVALID_ENDPOINT)
                 }
                 break;
         }
