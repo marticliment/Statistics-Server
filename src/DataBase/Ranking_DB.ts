@@ -49,7 +49,7 @@ export class Ranking_DB
         }
         
         // Increase by one the install ranking of this program
-        this.Data.set(value_to_increment, this.Data.get(value_to_increment) ?? 0 + 1);
+        this.Data.set(value_to_increment, (this.Data.get(value_to_increment) ?? 0) + 1);
     }
 
     GetProgramRanking(max_amount: number): (string | number)[][]

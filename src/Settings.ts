@@ -8,7 +8,7 @@ export class Settings
     static DATA_FOLDER = "./data"
 
     // The interval of time in which current state is stored on disk
-    static SAVE_ON_DISK_INTERVAL = 10;
+    static SAVE_ON_DISK_INTERVAL = 2;
 
     // The interval of time in which installed programs get cached
     static INSTALL_PROGRAMS_CACHE_CLEAN_INTERVAL = 3600 * 24 * 10;
