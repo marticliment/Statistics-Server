@@ -10,14 +10,14 @@ export class UserActivity
     {
         try 
         {
-            
-
             const id = Utils.ProcessUserId(Utils.GetHeader(req, "clientId"));                    
             const version = Utils.GetHeader(req, "clientVersion");
             const activeManagers = parseInt(Utils.GetHeader(req, "activeManagers"));
             const activeSettings = parseInt(Utils.GetHeader(req, "activeSettings"));
+            const language = Utils.GetHeader(req, "language");
 
-            if(id == "" || version == "" || isNaN(activeManagers) || isNaN(activeSettings))
+            if(Utils.Invalid(id) || Utils.Invalid(version) || Utils.Invalid(activeManagers) || 
+                Utils.Invalid(activeSettings) || Utils.Invalid(language))
             {
                 res.statusCode = 406;
             }

@@ -52,5 +52,13 @@ export class Utils
         }, {});
     };
 
+    static Invalid(param: string | number): boolean
+    {
+        if(typeof param === 'number') 
+            return isNaN(param);
+        else
+            return param.length <= 0 || param.length > 75 
+    }
+
 }
 

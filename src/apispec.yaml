@@ -45,6 +45,11 @@ paths:
         required: true
         schema:
           type: integer
+      - in: header
+        name: language
+        required: true
+        schema:
+          type: string
     post:
       summary: Submit client activity data
       responses:

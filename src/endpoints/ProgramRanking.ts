@@ -15,7 +15,7 @@ export class ProgramRanking
             const manager = Utils.GetHeader(req, "managerName");
             const source = Utils.GetHeader(req, "sourceName");
                     
-            if(user_id == "" || program_id == "" || manager == "" || source == "")
+            if(Utils.Invalid(user_id) || Utils.Invalid(program_id) || Utils.Invalid(manager) || Utils.Invalid(source))
             {
                 res.statusCode = 406;
             }

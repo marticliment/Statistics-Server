@@ -10,10 +10,11 @@ export class MainDB {
     static ActiveVersions = new ValuePerUser_DB<string>("ActiveVersions");
     static ActiveManagers = new ValuePerUser_DB<number>("ActiveManagers");
     static ActiveSettings = new ValuePerUser_DB<number>("ActiveSettings");
+    static ActiveLanguages = new ValuePerUser_DB<number>("ActiveLanguages");
     
     static InstallsRanking = new Ranking_DB("InstalledRanking", true);
 
-    private static DB_PerUser = [this.ActiveUsers, this.ActiveVersions, this.ActiveManagers, this.ActiveSettings];
+    private static DB_PerUser = [this.ActiveUsers, this.ActiveVersions, this.ActiveManagers, this.ActiveSettings, this.ActiveLanguages];
     private static DB_Rankings = [this.InstallsRanking];
 
     static UpdateUser(identifier: string, date: Date, version: string, activeManagers: number, activeSettings: number) 
