@@ -4,3 +4,5 @@
 src/ActiveUsers.json
 /src/data
 /src/tests-data
+src/build_and_push.cmd
+/src/out
