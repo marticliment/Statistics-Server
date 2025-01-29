@@ -6,10 +6,18 @@ import { GenerateReport } from './Endpoints/GenerateReport.ts';
 import fs from 'fs';
 import { Settings } from './Settings.ts';
 import { ProgramRanking } from './endpoints/ProgramRanking.ts';
+import { BannedUsers } from './Banner.ts';
 
 const server = http.createServer((req, res) => {
     try 
     {
+        if(BannedUsers.IsBanned(req))
+        {
+            res.statusCode = 429; // Too Many Requests
+            res.end();
+            return;
+        }
+
         // TODO: Prevent API abuse
         res.setHeader('Content-Type', 'text/json');
         switch(req.url)
@@ -85,8 +93,11 @@ MainDB.LoadFromDisk();
 MainDB.PurgeUsers();
 
 setInterval(() => MainDB.SaveToDisk(), Settings.SAVE_ON_DISK_INTERVAL * 1000);
-setInterval(() => MainDB.ClearRankingAdditionCache(), Settings.INSTALL_PROGRAMS_CACHE_CLEAN_INTERVAL* 1000)
-setInterval(() => MainDB.PurgeUsers(), Settings.INACTIVE_USER_PURGE_INTERVAL * 1000)
+setInterval(() => MainDB.ClearRankingAdditionCache(), Settings.INSTALL_PROGRAMS_CACHE_CLEAN_INTERVAL* 1000);
+setInterval(() => MainDB.PurgeUsers(), Settings.INACTIVE_USER_PURGE_INTERVAL * 1000);
+
+setInterval(() => BannedUsers.ResetActivityCount(), 1000);
+setInterval(() => BannedUsers.PardonBanned(), Settings.USER_BAN_PARDON_TIMEOUT * 1000);
 
 server.listen(Settings.PORT, Settings.HOSTNAME, () => {
     console.log(`Server running at http://${Settings.HOSTNAME}:${Settings.PORT}/`);

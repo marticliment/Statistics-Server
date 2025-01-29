@@ -20,6 +20,8 @@ paths:
                 properties:
                   message:
                     type: string
+        "429":
+          description: Too many requests
         "500":
           description: Internal server error
 
@@ -57,6 +59,8 @@ paths:
           description: Activity data was submitted.
         "406":
           description: Invalid or missing parameter(s).
+        "429":
+          description: Too many requests
         "500":
           description: Internal server error.
 
@@ -89,6 +93,8 @@ paths:
           description: Package information was submitted. The addition may be ignored if the data is invalid, but the sender (you) won't be notified. Invalid data could be, for example, when a client X submits twice the install of the same package.
         "406":
           description: Invalid or missing parameter(s).
+        "429":
+          description: Too many requests
         "500":
           description: Internal server error.
 
@@ -112,5 +118,7 @@ paths:
           description: Access denied.
         "406":
           description: Invalid or missing parameter(s).
+        "429":
+          description: Too many requests
         "500":
           description: Internal server error.

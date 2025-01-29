@@ -44,6 +44,12 @@ export class Settings
     // The interval of time in which inactive users are purged
     static INACTIVE_USER_PURGE_INTERVAL = 3600;
 
+    // Clients may do up to 10 requests per second
+    static MAX_REQUESTS_PER_SECOND = 10;
+
+    // Banned users may be clear every X seconds
+    static USER_BAN_PARDON_TIMEOUT = 10; 
+
     // A random salt
     static SALT = "2a0v4ole8ix5z"
     // Testing API KEY is "HelloWorld"

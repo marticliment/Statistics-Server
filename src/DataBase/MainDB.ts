@@ -10,19 +10,20 @@ export class MainDB {
     static ActiveVersions = new ValuePerUser_DB<string>("ActiveVersions");
     static ActiveManagers = new ValuePerUser_DB<number>("ActiveManagers");
     static ActiveSettings = new ValuePerUser_DB<number>("ActiveSettings");
-    static ActiveLanguages = new ValuePerUser_DB<number>("ActiveLanguages");
+    static ActiveLanguages = new ValuePerUser_DB<string>("ActiveLanguages");
     
     static InstallsRanking = new Ranking_DB("InstalledRanking", true);
 
     private static DB_PerUser = [this.ActiveUsers, this.ActiveVersions, this.ActiveManagers, this.ActiveSettings, this.ActiveLanguages];
     private static DB_Rankings = [this.InstallsRanking];
 
-    static UpdateUser(identifier: string, date: Date, version: string, activeManagers: number, activeSettings: number) 
+    static UpdateUser(identifier: string, date: Date, version: string, activeManagers: number, activeSettings: number, language: string) 
     {        
         this.ActiveUsers.Set(identifier, date.getTime());
         this.ActiveVersions.Set(identifier, version);
         this.ActiveManagers.Set(identifier, activeManagers);
         this.ActiveSettings.Set(identifier, activeSettings);
+        this.ActiveLanguages.Set(identifier, language);
     }
 
     static PurgeUsers() {
