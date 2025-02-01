@@ -48,10 +48,10 @@ export class ValuePerUser_DB<value_t>
             result.set(version, (result.get(version) ?? 0) + 1);
         });
 
-        // Calculate percent
+        /* Calculate percent
         result.forEach((count, version) => {
             result.set(version, (count*100.0)/this.Data.size);
-        });
+        });*/
 
         return Utils.MapToObject<value_t, number>(result);
     }
