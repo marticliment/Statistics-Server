@@ -1,7 +1,6 @@
 <?php
 
 if (!isset($_POST['apikey'])) {
-
     echo "
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -300,7 +299,7 @@ if ($response === FALSE) {
             generateColors(languageLabels.length)
         );
 
-        let colors = generateColors(10)
+        let colors = generateColors(14)
 
         
         createChart("versionsChart", Object.keys(jsonData.active_versions), Object.values(jsonData.active_versions), "Active version share", 'pie', colors);
