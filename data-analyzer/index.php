@@ -84,7 +84,6 @@ $response = file_get_contents($url, false, $context);
 if ($response === FALSE) {
     $error .= "An error has occurred while reading the API endpoint";
     echo '
-    
     <!DOCTYPE html>
     <html lang="en" class="dark"></html>
         <head>
