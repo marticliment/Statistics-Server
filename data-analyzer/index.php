@@ -58,7 +58,7 @@ if (!isset($_POST['apikey'])) {
             <form method='post' action='".$_SERVER['PHP_SELF']."' class='bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-sm'>
                 <label for='API_KEY' class='block text-sm font-medium text-gray-300 mb-2'>Enter the API KEY:</label>
                 <input type='password' id='API_KEY' name='API_KEY' required class='block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-700 text-gray-100'>
-                <button type='submit' id='sendkeybutton' class='mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>Save</button>
+                <button type='submit' id='sendkeybutton' class='mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>Log in</button>
             </form>
         </body>
     </html>
@@ -82,7 +82,7 @@ $context = stream_context_create($options);
 $response = file_get_contents($url, false, $context);
 
 if ($response === FALSE) {
-    $error .= "An error has occurred while reading the API endpoint";
+    $error .= "An error has occurred while reading the endpoint";
     echo '
     <!DOCTYPE html>
     <html lang="en" class="dark"></html>
@@ -94,7 +94,7 @@ if ($response === FALSE) {
         </head>
         <body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen">
             <form method="post" action="".$_SERVER["PHP_SELF"]."" class="bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-sm">
-                <label for="API_KEY" class="block text-sm font-medium text-gray-300 mb-2">'.$error.': <br>Check the API key and try again</label>
+                <label for="API_KEY" class="block text-sm font-medium text-gray-300 mb-2">'.$error.'. Check the API key and try again later<br>&nbsp;</label>
                 <button onclick="clearApiKey()" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md w-full ">
                     CLEAR API KEY
                 </button>
@@ -144,9 +144,8 @@ if ($response === FALSE) {
 <body class="bg-gray-900 text-gray-100"></body>
     <h1 class="text-4xl font-bold text-center my-8">UniGetUI statistics report</h1>
     <p class="text-lg text-center">Click any chart to enlarge it.</p>
-    <button onclick="clearApiKey()" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded fixed top-4 right-4">
-            Log out
-    </button>
+    <button onclick="clearApiKey()" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded fixed top-4 right-4">&nbsp;Log out&nbsp;</button>
+    <button onclick="location.href = location.href;" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded fixed top-4 right-32">&nbsp;Refresh&nbsp;</button>
     
     <br>
     <div class="chart-container bg-gray-800 shadow-md rounded-lg p-6 mb-8">

@@ -68,27 +68,40 @@ export class Ranking_DB
 
     LoadFromDisk(): void
     {
+        const new_file = `${Settings.DATA_FOLDER}/${this.data_name}.json.new`;
+        const save_file = `${Settings.DATA_FOLDER}/${this.data_name}.json`;
+        const old_file = `${Settings.DATA_FOLDER}/${this.data_name}.json.old`;
         try 
         {
-            console.debug(`Loading data for ${this.data_name} from ${`${Settings.DATA_FOLDER}/${this.data_name}.json`}...`);
-            this.Data.clear();
-            if (fs.existsSync(`${Settings.DATA_FOLDER}/${this.data_name}.json`)) 
+
+            if(fs.existsSync(new_file) || fs.existsSync(old_file)) 
             {
-                const data = fs.readFileSync(`${Settings.DATA_FOLDER}/${this.data_name}.json`, 'utf-8');
+                console.error(" @@ ");
+                console.error(" @@  PANIC!!! ");
+                console.error(" @@ ");
+                console.error("Invalid FS state. check manually and run server again (no .old or .new files should be present)");
+                process.exit(1);
+            }
+    
+            console.debug(`Loading data for ${this.data_name} from ${save_file}...`);
+            this.Data.clear();
+            if (fs.existsSync(save_file)) 
+            {
+                const data = fs.readFileSync(save_file, 'utf-8');
                 const parsedData: { [key: string]: number} = JSON.parse(data);
                 Object.entries(parsedData).forEach(([key, value]) => {
                     this.Data.set(key, value);
                 });
-                console.debug(`${this.data_name} was loaded successfully from ${`${Settings.DATA_FOLDER}/${this.data_name}.json`}`);
+                console.debug(`${this.data_name} was loaded successfully from ${save_file}`);
             } 
             else 
             {
-                console.warn(`${this.data_name} was initialized empty (${`${Settings.DATA_FOLDER}/${this.data_name}.json`}) was not found`);
+                console.warn(`${this.data_name} was initialized empty (${save_file}) was not found`);
             }
         } 
         catch (err)
         {
-            console.error(`Failed to load data for ${this.data_name} from ${`${Settings.DATA_FOLDER}/${this.data_name}.json`}:`, err);
+            console.error(`Failed to load data for ${this.data_name} from ${save_file}:`, err);
         }
         
     }
@@ -98,11 +111,21 @@ export class Ranking_DB
         try 
         {
             // console.debug(`Saving ${this.data_name} to disk, on ${`${Settings.DATA_FOLDER}/${this.data_name}.json`}...`);
+            const new_file = `${Settings.DATA_FOLDER}/${this.data_name}.json.new`;
+            const save_file = `${Settings.DATA_FOLDER}/${this.data_name}.json`;
+            const old_file = `${Settings.DATA_FOLDER}/${this.data_name}.json.old`;
+            
             const data_to_store: { [key: string]: number } = {};
             this.Data.forEach((value, key) => {
                 data_to_store[key] = value;
             });
-            fs.writeFileSync(`${Settings.DATA_FOLDER}/${this.data_name}.json`, JSON.stringify(data_to_store, null, 4), 'utf-8');
+            fs.writeFileSync(new_file, JSON.stringify(data_to_store, null, 4), 'utf-8');
+            
+            if (fs.existsSync(old_file)) fs.unlinkSync(old_file);
+            if (fs.existsSync(save_file)) fs.renameSync(save_file, old_file); 
+            fs.renameSync(new_file, save_file); 
+            if (fs.existsSync(old_file)) fs.unlinkSync(old_file);
+            
             // console.debug(`${this.data_name} was successfully saved to disk`);            
         } 
         catch (err)
