@@ -38,6 +38,10 @@ const server = http.createServer((req, res) => {
                 PackageOPs.ProcessPackage_OP(req, res, [MainDB.InstallsRanking, MainDB.PopularRanking], MainDB.InstallCount);
                 break;
 
+            case "/package/download":
+                PackageOPs.ProcessPackage_NoOp(req, res, [MainDB.PopularRanking], MainDB.DownloadCount);
+                break;
+
             case "/package/update":
                 PackageOPs.ProcessPackage_OP(req, res, [MainDB.PopularRanking], MainDB.UpdateCount);
                 break;

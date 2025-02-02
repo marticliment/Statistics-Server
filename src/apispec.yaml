@@ -64,7 +64,7 @@ paths:
         "500":
           description: Internal server error.
 
-  /install:
+  /package/install:
     parameters:
       - in: header
         name: clientId
@@ -86,6 +86,15 @@ paths:
         required: true
         schema:
           type: string
+      - in: header
+        name: operationResult
+        schema:
+          type: string
+          enum:
+            - SUCCESS
+            - FAILED
+            - CANCELED
+        required: true
     post:
       summary: Submit that a client has installed a package
       responses:
@@ -97,6 +106,273 @@ paths:
           description: Too many requests
         "500":
           description: Internal server error.
+
+  /package/download:
+    parameters:
+      - in: header
+        name: clientId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: packageId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: managerName
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: sourceName
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: operationResult
+        schema:
+          type: string
+          enum:
+            - SUCCESS
+            - FAILED
+            - CANCELED
+        required: true
+    post:
+      summary: Submit that a client has downloaded a package
+      responses:
+        "200":
+          description: Package information was submitted. The addition may be ignored if the data is invalid, but the sender (you) won't be notified. Invalid data could be, for example, when a client X submits twice the install of the same package.
+        "406":
+          description: Invalid or missing parameter(s).
+        "429":
+          description: Too many requests
+        "500":
+          description: Internal server error.
+
+  /package/update:
+    parameters:
+      - in: header
+        name: clientId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: packageId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: managerName
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: sourceName
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: operationResult
+        schema:
+          type: string
+          enum:
+            - SUCCESS
+            - FAILED
+            - CANCELED
+        required: true
+    post:
+      summary: Submit that a client has updated a package
+      responses:
+        "200":
+          description: Package information was submitted. The addition may be ignored if the data is invalid, but the sender (you) won't be notified. Invalid data could be, for example, when a client X submits twice the install of the same package.
+        "406":
+          description: Invalid or missing parameter(s).
+        "429":
+          description: Too many requests
+        "500":
+          description: Internal server error.
+
+  /package/uninstall:
+    parameters:
+      - in: header
+        name: clientId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: packageId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: managerName
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: sourceName
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: operationResult
+        schema:
+          type: string
+          enum:
+            - SUCCESS
+            - FAILED
+            - CANCELED
+        required: true
+    post:
+      summary: Submit that a client has uninstalled a package
+      responses:
+        "200":
+          description: Package information was submitted. The addition may be ignored if the data is invalid, but the sender (you) won't be notified. Invalid data could be, for example, when a client X submits twice the install of the same package.
+        "406":
+          description: Invalid or missing parameter(s).
+        "429":
+          description: Too many requests
+        "500":
+          description: Internal server error.
+
+  /package/details:
+    parameters:
+      - in: header
+        name: clientId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: packageId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: managerName
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: sourceName
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: eventSource
+        required: true
+        schema:
+          type: string
+    post:
+      summary: Submit that a client has opened a package details page
+      responses:
+        "200":
+          description: Package information was submitted. The addition may be ignored if the data is invalid, but the sender (you) won't be notified. Invalid data could be, for example, when a client X submits twice the install of the same package.
+        "406":
+          description: Invalid or missing parameter(s).
+        "429":
+          description: Too many requests
+        "500":
+          description: Internal server error.
+
+  /package/share:
+    parameters:
+      - in: header
+        name: clientId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: packageId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: managerName
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: sourceName
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: eventSource
+        required: true
+        schema:
+          type: string
+    post:
+      summary: Submit that a client has opened a package details page
+      responses:
+        "200":
+          description: Package information was submitted. The addition may be ignored if the data is invalid, but the sender (you) won't be notified. Invalid data could be, for example, when a client X submits twice the install of the same package.
+        "406":
+          description: Invalid or missing parameter(s).
+        "429":
+          description: Too many requests
+        "500":
+          description: Internal server error.
+
+  /bundles/export:
+    parameters:
+      - in: header
+        name: clientId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: bundleType
+        schema:
+          type: string
+          enum:
+            - UBUNDLE
+            - JSON
+            - YAML
+            - XML
+        required: true
+    post:
+      summary: Submit that a client has exported a bundle
+      responses:
+        "200":
+          description: Package information was submitted. The addition may be ignored if the data is invalid, but the sender (you) won't be notified. Invalid data could be, for example, when a client X submits twice the install of the same package.
+        "406":
+          description: Invalid or missing parameter(s).
+        "429":
+          description: Too many requests
+        "500":
+          description: Internal server error.
+
+  /bundles/import:
+    parameters:
+      - in: header
+        name: clientId
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: bundleType
+        schema:
+          type: string
+          enum:
+            - UBUNDLE
+            - JSON
+            - YAML
+            - XML
+    post:
+      summary: Submit that a client has opened a bundle
+      responses:
+        "200":
+          description: Package information was submitted. The addition may be ignored if the data is invalid, but the sender (you) won't be notified. Invalid data could be, for example, when a client X submits twice the install of the same package.
+        "406":
+          description: Invalid or missing parameter(s).
+        "429":
+          description: Too many requests
+        "500":
+          description: Internal server error.
+
+
+
 
   /report:
     parameters:

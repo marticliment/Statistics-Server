@@ -13,10 +13,7 @@ export class CounterAdder
         try 
         {
             const user_id = Utils.ProcessUserId(Utils.GetHeader(req, "clientId"));
-            const bundleType = Utils.GetHeader(req, "packageId");
-            const manager = Utils.GetHeader(req, "managerName");
-            const source = Utils.GetHeader(req, "sourceName");
-            const result = Utils.GetHeader(req, "result");
+            const bundleType = Utils.GetHeader(req, "bundleType");
                     
             if(Utils.Invalid(bundleType) )
             {
@@ -33,8 +30,5 @@ export class CounterAdder
             console.error(err);
         }
     }
-
-    
-
 }
 

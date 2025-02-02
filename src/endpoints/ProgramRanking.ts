@@ -16,7 +16,7 @@ export class PackageOPs
             const program_id = Utils.GetHeader(req, "packageId");
             const manager = Utils.GetHeader(req, "managerName");
             const source = Utils.GetHeader(req, "sourceName");
-            const result = Utils.GetHeader(req, "result");
+            const result = Utils.GetHeader(req, "operationResult");
                     
             if(Utils.Invalid(user_id) || Utils.Invalid(program_id) || Utils.Invalid(manager) || Utils.Invalid(source))
             {

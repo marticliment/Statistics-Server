@@ -26,6 +26,7 @@ export class MainDB {
     static ExportedBundles = new Counter_DB("ExportedBundles", 1)
     
     static InstallCount = new Counter_DB("InstallOperations", 2)
+    static DownloadCount = new Counter_DB("DownloadOperations", 2)
     static UpdateCount = new Counter_DB("UpdateOperations", 2)
     static UninstallCount = new Counter_DB("UninstallOperations", 2)
 
