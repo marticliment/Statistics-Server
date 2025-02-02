@@ -35,7 +35,7 @@ export class Counter_DB
     Increment_1dim(group1: string, author: string): void
     {
         if(!this.EnsureActivity(author)) return;
-        if(this.DimCount != 0) throw new Error(`Invalid dimension count ${this.DimCount} when expecting 1 on ${this.data_name}`);
+        if(this.DimCount != 1) throw new Error(`Invalid dimension count ${this.DimCount} when expecting 1 on ${this.data_name}`);
      
         this.Data.set(group1, (this.Data.get(group1) ?? 0) + 1);
         Utils.UNSAVED_CHANGES = true;
@@ -44,7 +44,7 @@ export class Counter_DB
     Increment_2dim(group1: string, group2: string, author: string): void
     {
         if(!this.EnsureActivity(author)) return;
-        if(this.DimCount != 0) throw new Error(`Invalid dimension count ${this.DimCount} when expecting 2 on ${this.data_name}`);
+        if(this.DimCount != 2) throw new Error(`Invalid dimension count ${this.DimCount} when expecting 2 on ${this.data_name}`);
                 
         let key = `${group1.replace('_', '')}_${group2.replace('_', '')}`;
         this.Data.set(key, (this.Data.get(key) ?? 0) + 1);

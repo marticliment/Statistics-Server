@@ -16,7 +16,7 @@ export class MainDB {
     
     // ------------------------------------------------
 
-    static PopularRanking = new Ranking_DB("PopularRanking", true);
+    static PopularRanking = new Ranking_DB("PopularRanking", false);
     static InstallsRanking = new Ranking_DB("InstalledRanking", true);
     static UninstalledRanking = new Ranking_DB("UninstallsRanking", true);
 

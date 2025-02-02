@@ -18,7 +18,7 @@ export class PackageOPs
             const source = Utils.GetHeader(req, "sourceName");
             const result = Utils.GetHeader(req, "operationResult");
                     
-            if(Utils.Invalid(user_id) || Utils.Invalid(program_id) || Utils.Invalid(manager) || Utils.Invalid(source))
+            if(Utils.Invalid(user_id) || Utils.Invalid(program_id) || Utils.Invalid(manager) || Utils.Invalid(source) || Utils.Invalid(result))
             {
                 res.statusCode = 406;
             }

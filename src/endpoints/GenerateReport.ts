@@ -30,9 +30,19 @@ export class GenerateReport
                 active_languages: MainDB.ActiveLanguages.GetReport_ByShareMap(),
                 active_managers: MainDB.ActiveManagers.GetReport_ByBitMask(),
                 active_settings: MainDB.ActiveSettings.GetReport_ByBitMask(),
+                
                 popular_ranking: MainDB.PopularRanking.GetProgramRanking(10),
                 installed_ranking: MainDB.InstallsRanking.GetProgramRanking(10),
                 uninstalled_ranking: MainDB.UninstalledRanking.GetProgramRanking(10),
+
+                imported_bundles: MainDB.ImportedBundles.GetReport_ByShareMap(),
+                exported_bundles: MainDB.ImportedBundles.GetReport_ByShareMap(),
+                install_count: MainDB.InstallCount.GetReport_ByShareMap(),
+                download_count: MainDB.DownloadCount.GetReport_ByShareMap(),
+                update_count: MainDB.UpdateCount.GetReport_ByShareMap(),
+                uninstall_count: MainDB.UninstallCount.GetReport_ByShareMap(),
+                shown_package_details: MainDB.ShownPackageDetails.GetReport_ByShareMap(),
+                shared_packages: MainDB.SharedPackages.GetReport_ByShareMap(),
             }))
         }
     }
