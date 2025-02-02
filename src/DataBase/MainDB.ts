@@ -3,8 +3,10 @@ import { Utils } from '../Utils.ts';
 import { Settings } from '../Settings.ts';
 import { ValuePerUser_DB } from './ValuePerUser_DB.ts';
 import { Ranking_DB } from './Ranking_DB.ts';
+import { Counter_DB } from './Counter_DB.ts';
 
 export class MainDB {
+    // ------------------------------------------------
 
     static ActiveUsers = new ValuePerUser_DB<number>("ActiveUsers");
     static ActiveVersions = new ValuePerUser_DB<string>("ActiveVersions");
@@ -12,10 +14,31 @@ export class MainDB {
     static ActiveSettings = new ValuePerUser_DB<number>("ActiveSettings");
     static ActiveLanguages = new ValuePerUser_DB<string>("ActiveLanguages");
     
+    // ------------------------------------------------
+
+    static PopularRanking = new Ranking_DB("PopularRanking", true);
     static InstallsRanking = new Ranking_DB("InstalledRanking", true);
+    static UninstalledRanking = new Ranking_DB("UninstallsRanking", true);
+
+    // ------------------------------------------------
+
+    static ImportedBundles = new Counter_DB("ImportedBundles", 1)
+    static ExportedBundles = new Counter_DB("ExportedBundles", 1)
+    
+    static InstallCount = new Counter_DB("InstallOperations", 2)
+    static UpdateCount = new Counter_DB("UpdateOperations", 2)
+    static UninstallCount = new Counter_DB("UninstallOperations", 2)
+
+    static ShownPackageDetails = new Counter_DB("ShownPackageDetails", 1)
+    static SharedPackages = new Counter_DB("SharedPackages", 1)
+
+    // ------------------------------------------------
 
     private static DB_PerUser = [this.ActiveUsers, this.ActiveVersions, this.ActiveManagers, this.ActiveSettings, this.ActiveLanguages];
-    private static DB_Rankings = [this.InstallsRanking];
+    private static DB_Rankings = [this.InstallsRanking, this.UninstalledRanking, this.PopularRanking];
+    private static DB_Counters = [this.ImportedBundles, this.ExportedBundles, this.InstallCount, this.UpdateCount, this.UninstallCount];
+
+
 
     static UpdateUser(identifier: string, date: Date, version: string, activeManagers: number, activeSettings: number, language: string) 
     {        
@@ -47,6 +70,7 @@ export class MainDB {
         {
             this.DB_PerUser.forEach((db) => db.LoadFromDisk())
             this.DB_Rankings.forEach((db) => db.LoadFromDisk())
+            this.DB_Counters.forEach((db) => db.LoadFromDisk())
         } 
         catch (err) 
         {
@@ -63,6 +87,7 @@ export class MainDB {
             if(Settings.IS_DEBUG) console.log("Saving server state to disk...")
             this.DB_PerUser.forEach((db) => db.SaveToDisk())
             this.DB_Rankings.forEach((db) => db.SaveToDisk())
+            this.DB_Counters.forEach((db) => db.SaveToDisk())
             Utils.UNSAVED_CHANGES = false;
         } 
         catch (err)

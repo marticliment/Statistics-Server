@@ -39,7 +39,7 @@ export class ValuePerUser_DB<value_t>
         return this.Data.size
     }
 
-    GetReport_ByShareMap(): object
+    GetReport_ByShareMap(percent: boolean = false): object
     {
         let result = new Map<value_t, number>();
 
@@ -48,10 +48,12 @@ export class ValuePerUser_DB<value_t>
             result.set(version, (result.get(version) ?? 0) + 1);
         });
 
-        /* Calculate percent
-        result.forEach((count, version) => {
-            result.set(version, (count*100.0)/this.Data.size);
-        });*/
+        if(percent) {
+            // Calculate percent
+            result.forEach((count, version) => {
+                result.set(version, (count*100.0)/this.Data.size);
+            });
+        }
 
         return Utils.MapToObject<value_t, number>(result);
     }

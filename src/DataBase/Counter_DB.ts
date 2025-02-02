@@ -2,77 +2,58 @@ import * as fs from 'fs';
 import { Settings } from '../Settings.ts';
 import { MainDB } from './MainDB.ts';
 import { Utils } from '../Utils.ts';
+import { count } from 'console';
 
-export class Ranking_DB
+export class Counter_DB
 {
     private data_name: string;
-    
-    private Data: Map<string, number> = new Map<string, number>(); 
-    private RecentAdditions: Map<string, Set<string>> = new Map<string, Set<string>>();
-    private PREVENT_SPAMMING: boolean;
+    private Data: Map<string, number> = new Map<string, number>();
+    public DimCount: number;
 
-
-    constructor(name: string, prevent_spamming: boolean)
+    constructor(name: string, dimCount: number)
     {
         this.data_name = name;
-        this.PREVENT_SPAMMING = prevent_spamming;
+        this.DimCount = dimCount;
     }
 
-
-    Increment(value_to_increment: string, author: string): void
+    EnsureActivity(author: string)
     {
-        // Check if the program has already been installed by the user
-        if(!MainDB.ActiveUsers.Has(author)) 
-        { 
-            console.warn(`User ${author} is not considered to be active`); 
-            return; 
-        };
-        
-        if(this.PREVENT_SPAMMING)
-        {
-            if(this.RecentAdditions.get(author)?.has(value_to_increment) ?? false) 
-            { 
-                // If this user has already installed this program, do not.
-                console.warn(`User ${author} already added ${value_to_increment} recently, ignoring`); 
-                return; 
-            } 
-            else 
-            {
-                // Add the program to the list to prevent spamming. If there is no set, create one
-                if(this.RecentAdditions.get(author) == null)
-                    this.RecentAdditions.set(author, new Set<string>());
+        let val = MainDB.ActiveUsers.Has(author);
+        if(!val) console.warn(`User ${author} is not considered to be active`); 
+        return val;
+    }
 
-                this.RecentAdditions.get(author)?.add(value_to_increment);
-            }
-        }
+    Increment_0dim(author: string): void
+    {
+        if(!this.EnsureActivity(author)) return;
+        if(this.DimCount != 0) throw new Error(`Invalid dimension count ${this.DimCount} when expecting 0 on ${this.data_name}`);
         
-        // Increase by one the install ranking of this program
-        this.Data.set(value_to_increment, (this.Data.get(value_to_increment) ?? 0) + 1);
+        this.Data.set('value', (this.Data.get('value') ?? 0) + 1);
         Utils.UNSAVED_CHANGES = true;
     }
 
-    GetProgramRanking(max_amount: number): (string | number)[][]
+    Increment_1dim(group1: string, author: string): void
     {
-        let sortedRanking = Array.from(this.Data.entries())
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, Math.min(this.Data.size, max_amount));
-
-        return sortedRanking.map(([entry, count]) => (Utils.GetProgramDataFromUniqueId(entry) as (string | number)[]).concat([count]));
+        if(!this.EnsureActivity(author)) return;
+        if(this.DimCount != 0) throw new Error(`Invalid dimension count ${this.DimCount} when expecting 1 on ${this.data_name}`);
+     
+        this.Data.set(group1, (this.Data.get(group1) ?? 0) + 1);
+        Utils.UNSAVED_CHANGES = true;
     }
 
-    GetRandomItemInRanking(): string[]
+    Increment_2dim(group1: string, group2: string, author: string): void
     {
-        let keys = this.Data.keys();
-        const randomIndex = Math.floor(Math.random() * this.Data.size);
-        const keyArray = Array.from(keys);
-        const randomKey = keyArray[randomIndex];
-        return Utils.GetProgramDataFromUniqueId(randomKey);
+        if(!this.EnsureActivity(author)) return;
+        if(this.DimCount != 0) throw new Error(`Invalid dimension count ${this.DimCount} when expecting 2 on ${this.data_name}`);
+                
+        let key = `${group1.replace('_', '')}_${group2.replace('_', '')}`;
+        this.Data.set(key, (this.Data.get(key) ?? 0) + 1);
+        Utils.UNSAVED_CHANGES = true;
     }
 
-    ClearRecentAdditionsList(): void
+    GetReport_ByShareMap(): object
     {
-        if(!this.PREVENT_SPAMMING) return;
-        this.RecentAdditions.clear();
+        return Utils.MapToObject<string, number>(this.Data);
     }
 
     LoadFromDisk(): void

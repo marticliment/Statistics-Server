@@ -19,7 +19,7 @@ export class Utils
     }
 
     // Returns in the form of [name, manager, source]
-    static GetProgramDataFromUniqueId(unique_id: string): (string | number)[]
+    static GetProgramDataFromUniqueId(unique_id: string): string[]
     {
         try {
             let pieces = unique_id.split(":");

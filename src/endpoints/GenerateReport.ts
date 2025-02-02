@@ -5,8 +5,8 @@ import { Utils } from '../Utils.ts';
 
 export class GenerateReport
 {
-    static days = 10;
-    static activity_period_ms = 1000 * 3600 * 24 * this.days;
+    // static days = 10;
+    // static activity_period_ms = 1000 * 3600 * 24 * this.days;
 
     static Respond(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>)
     {
@@ -23,14 +23,16 @@ export class GenerateReport
         }
         else
         {
-            MainDB.PurgeUsers();
+            // MainDB.PurgeUsers();
             res.write(JSON.stringify({
                 active_users: MainDB.ActiveUsers.Size(),
                 active_versions: MainDB.ActiveVersions.GetReport_ByShareMap(),
                 active_languages: MainDB.ActiveLanguages.GetReport_ByShareMap(),
                 active_managers: MainDB.ActiveManagers.GetReport_ByBitMask(),
                 active_settings: MainDB.ActiveSettings.GetReport_ByBitMask(),
-                program_ranking: MainDB.InstallsRanking.GetProgramRanking(10),
+                popular_ranking: MainDB.PopularRanking.GetProgramRanking(10),
+                installed_ranking: MainDB.InstallsRanking.GetProgramRanking(10),
+                uninstalled_ranking: MainDB.UninstalledRanking.GetProgramRanking(10),
             }))
         }
     }
