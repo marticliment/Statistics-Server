@@ -26,6 +26,7 @@ export class MainDB {
     static ExportedBundles = new Counter_DB("ExportedBundles", 1)
     
     static InstallCount = new Counter_DB("InstallOperations", 2)
+    static InstallReason = new Counter_DB("PkgInstallReasons", 1)
     static DownloadCount = new Counter_DB("DownloadOperations", 2)
     static UpdateCount = new Counter_DB("UpdateOperations", 2)
     static UninstallCount = new Counter_DB("UninstallOperations", 2)
@@ -37,7 +38,8 @@ export class MainDB {
 
     private static DB_PerUser = [this.ActiveUsers, this.ActiveVersions, this.ActiveManagers, this.ActiveSettings, this.ActiveLanguages];
     private static DB_Rankings = [this.InstallsRanking, this.UninstalledRanking, this.PopularRanking];
-    private static DB_Counters = [this.ImportedBundles, this.ExportedBundles, this.InstallCount, this.UpdateCount, this.UninstallCount];
+    private static DB_Counters = [this.ImportedBundles, this.ExportedBundles, this.InstallCount, this.InstallReason, 
+        this.DownloadCount, this.UpdateCount, this.UninstallCount, this.ShownPackageDetails, this.SharedPackages];
 
 
 

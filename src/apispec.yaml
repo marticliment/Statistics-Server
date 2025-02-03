@@ -95,6 +95,11 @@ paths:
             - FAILED
             - CANCELED
         required: true
+      - in: header
+        name: eventSource
+        required: true
+        schema:
+          type: string
     post:
       summary: A package was installed
       responses:
@@ -138,6 +143,11 @@ paths:
             - FAILED
             - CANCELED
         required: true
+      - in: header
+        name: eventSource
+        required: true
+        schema:
+          type: string
     post:
       summary: A package was downloaded
       responses:

@@ -36,8 +36,9 @@ export class GenerateReport
                 uninstalled_ranking: MainDB.UninstalledRanking.GetProgramRanking(10),
 
                 imported_bundles: MainDB.ImportedBundles.GetReport_ByShareMap(),
-                exported_bundles: MainDB.ImportedBundles.GetReport_ByShareMap(),
+                exported_bundles: MainDB.ExportedBundles.GetReport_ByShareMap(),
                 install_count: MainDB.InstallCount.GetReport_ByShareMap(),
+                install_reason: MainDB.InstallReason.GetReport_ByShareMap(),
                 download_count: MainDB.DownloadCount.GetReport_ByShareMap(),
                 update_count: MainDB.UpdateCount.GetReport_ByShareMap(),
                 uninstall_count: MainDB.UninstallCount.GetReport_ByShareMap(),

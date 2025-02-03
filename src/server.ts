@@ -35,27 +35,28 @@ const server = http.createServer((req, res) => {
 
 
             case "/package/install":
-                PackageOPs.ProcessPackage_OP(req, res, [MainDB.InstallsRanking, MainDB.PopularRanking], MainDB.InstallCount);
+                PackageOPs.ProcessPackage_EventSource(req, res, [], MainDB.InstallReason);
+                PackageOPs.ProcessPackage_OperationResult(req, res, [MainDB.InstallsRanking, MainDB.PopularRanking], MainDB.InstallCount);
                 break;
 
             case "/package/download":
-                PackageOPs.ProcessPackage_OP(req, res, [MainDB.PopularRanking], MainDB.DownloadCount);
+                PackageOPs.ProcessPackage_OperationResult(req, res, [MainDB.PopularRanking], MainDB.DownloadCount);
                 break;
 
             case "/package/update":
-                PackageOPs.ProcessPackage_OP(req, res, [MainDB.PopularRanking], MainDB.UpdateCount);
+                PackageOPs.ProcessPackage_OperationResult(req, res, [MainDB.PopularRanking], MainDB.UpdateCount);
                 break;
 
             case "/package/uninstall":
-                PackageOPs.ProcessPackage_OP(req, res, [MainDB.UninstalledRanking], MainDB.UninstallCount);
+                PackageOPs.ProcessPackage_OperationResult(req, res, [MainDB.UninstalledRanking], MainDB.UninstallCount);
                 break;
 
             case "/package/details":
-                PackageOPs.ProcessPackage_NoOp(req, res, [MainDB.PopularRanking], MainDB.ShownPackageDetails);
+                PackageOPs.ProcessPackage_EventSource(req, res, [MainDB.PopularRanking], MainDB.ShownPackageDetails);
                 break;
 
             case "/package/share":
-                PackageOPs.ProcessPackage_NoOp(req, res, [MainDB.PopularRanking], MainDB.SharedPackages);
+                PackageOPs.ProcessPackage_EventSource(req, res, [MainDB.PopularRanking], MainDB.SharedPackages);
                 break;
 
 

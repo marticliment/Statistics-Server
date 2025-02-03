@@ -8,7 +8,7 @@ import { Counter_DB } from '../DataBase/Counter_DB.ts';
 
 export class PackageOPs
 {
-    static ProcessPackage_OP(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>, rankings: Ranking_DB[], counter: Counter_DB)
+    static ProcessPackage_OperationResult(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>, rankings: Ranking_DB[], counter: Counter_DB)
     {
         try 
         {
@@ -41,7 +41,7 @@ export class PackageOPs
         }
     }
 
-    static ProcessPackage_NoOp(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>, rankings: Ranking_DB[], counter: Counter_DB)
+    static ProcessPackage_EventSource(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>, rankings: Ranking_DB[], counter: Counter_DB)
     {
         try 
         {
