@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import { Utils } from '../Utils.ts';
 import { Settings } from '../Settings.ts';
+import internal from 'stream';
 
 export class ValuePerUser_DB<value_t>
 {
@@ -37,6 +38,19 @@ export class ValuePerUser_DB<value_t>
     Size(): number
     {
         return this.Data.size
+    }
+
+    GetReport_Average(): number
+    {
+        let sum = 0;
+        let count = 0;
+
+        this.Data.forEach((value) => {
+            sum += value as number;
+            count++;
+        });
+
+        return count > 0 ? sum / count : 0;
     }
 
     GetReport_ByShareMap(percent: boolean = false): object

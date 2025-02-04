@@ -24,8 +24,13 @@ export class GenerateReport
         else
         {
             // MainDB.PurgeUsers();
+            let avgTime = MainDB.ActiveUsers.GetReport_Average();
+            if(avgTime != 0) avgTime = (new Date().getTime() - avgTime)/1000;
+            else avgTime = -1;
+
             res.write(JSON.stringify({
                 active_users: MainDB.ActiveUsers.Size(),
+                avg_last_ping_timeDelta: avgTime,
                 active_versions: MainDB.ActiveVersions.GetReport_ByShareMap(),
                 active_languages: MainDB.ActiveLanguages.GetReport_ByShareMap(),
                 active_managers: MainDB.ActiveManagers.GetReport_ByBitMask(),

@@ -35,12 +35,13 @@ const server = http.createServer((req, res) => {
 
 
             case "/package/install":
-                PackageOPs.ProcessPackage_EventSource(req, res, [], MainDB.InstallReason);
                 PackageOPs.ProcessPackage_OperationResult(req, res, [MainDB.InstallsRanking, MainDB.PopularRanking], MainDB.InstallCount);
+                PackageOPs.ProcessPackage_EventSource(req, res, [], MainDB.InstallReason);
                 break;
 
             case "/package/download":
                 PackageOPs.ProcessPackage_OperationResult(req, res, [MainDB.PopularRanking], MainDB.DownloadCount);
+                PackageOPs.ProcessPackage_EventSource(req, res, [], MainDB.InstallReason);
                 break;
 
             case "/package/update":
