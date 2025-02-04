@@ -142,7 +142,7 @@ export class ValuePerUser_DB<value_t>
             this.Data.forEach((value, key) => {
                 data_to_store[key] = value;
             });
-            fs.writeFileSync(new_file, JSON.stringify(data_to_store, null, 4), 'utf-8');
+            fs.writeFileSync(new_file, JSON.stringify(data_to_store, null, 0), 'utf-8');
 
             
             if (fs.existsSync(old_file)) fs.unlinkSync(old_file);
