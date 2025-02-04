@@ -1,116 +1,113 @@
 <?php
+require_once 'login_helper.php';
 
-if (!isset($_POST['apikey'])) {
+$response = do_login_and_get_response();
+
+$randomId = 0;
+
+function begin_chart_zone($title)
+{
     echo "
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('form');
-        const input = document.getElementById('API_KEY');
-
-        // Check if X is already in localStorage
-        if (localStorage.getItem('API_KEY')) {
-            const Xvalue = localStorage.getItem('API_KEY');
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = location.href;
-
-            const hiddenField = document.createElement('input');
-            hiddenField.type = 'hidden';
-            hiddenField.name = 'apikey';
-            hiddenField.value = Xvalue;
-
-            form.appendChild(hiddenField);
-            document.body.appendChild(form);
-            form.submit();
-            document.body.style.display = 'none';
-        }
-
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const Xvalue = input.value;
-            localStorage.setItem('API_KEY', Xvalue);
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = location.href;
-
-            const hiddenField = document.createElement('input');
-            hiddenField.type = 'hidden';
-            hiddenField.name = 'apikey';
-            hiddenField.value = Xvalue;
-
-            form.appendChild(hiddenField);
-            document.body.appendChild(form);
-            form.submit();
-        });
-    });
-    </script>
-
-    <!DOCTYPE html>
-    <html lang='en' class='dark'></html>
-        <head>
-            <meta charset='UTF-8'>
-            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <title>API Key required - Statistics</title>
-            <link href='https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css' rel='stylesheet'>
-        </head>
-        <body class='bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen'>
-            <form method='post' action='".$_SERVER['PHP_SELF']."' class='bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-sm'>
-                <label for='API_KEY' class='block text-sm font-medium text-gray-300 mb-2'>Enter the API KEY:</label>
-                <input type='password' id='API_KEY' name='API_KEY' required class='block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-700 text-gray-100'>
-                <button type='submit' id='sendkeybutton' class='mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>Log in</button>
-            </form>
-        </body>
-    </html>
+        <h1 class='text-4xl font-bold text-center my-8'>$title</h1>
+        <div class='grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-4 gap-1'>
     ";
-    die();
 
-} else {
-    $apiKey = $_POST['apikey'];
 }
 
-$url = "http://marticliment.com/unigetui/statistics/report";
+function end_chart_zone()
+{
+    echo "</div>";
+}
 
-$options = [
-    "http" => [
-        "header" => "apiKey: $apiKey\r\n"
-    ]
-];
+function chart_div($id, $title)
+{
+    echo "
+    <div class='chart-container bg-gray-800 shadow-md rounded-lg p-6 mb-8 relative' id='".$id."Chart' onclick='toggleFullscreen(\"".$id."Chart\")'>
+        <h2 class='text-xl mb-2'>$title</h2>
+        <p class='text-l mb-2' style='display: none' id='".$id."CountBlock'><span>Total results: </span><span class='text-blue-400 font-bold' id='".$id."Count'></span></p>
+        <canvas id='$id'></canvas>
+    </div>";
+}
 
-error_reporting(0);
-$context = stream_context_create($options);
-$response = file_get_contents($url, false, $context);
+function draw_pie($id, $json_id, $description)
+{
+    echo "
+        <script>
+            createChart('$id', 
+                Object.keys(jsonData.$json_id), 
+                Object.values(jsonData.$json_id), 
+                '$description', 'pie', generateColors(Object.keys(jsonData.$json_id).length));
+            
+            document.getElementById('".$id."Count').innerText = Object.values(jsonData.$json_id).length.toString();
+            document.getElementById('".$id."CountBlock').style.display = 'block';
+        </script>
+    ";
+}
 
-if ($response === FALSE) {
-    $error .= "An error has occurred while reading the endpoint";
-    echo '
-    <!DOCTYPE html>
-    <html lang="en" class="dark"></html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>API Key required - Statistics</title>
-            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-        </head>
-        <body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen">
-            <form method="post" action="".$_SERVER["PHP_SELF"]."" class="bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-sm">
-                <label for="API_KEY" class="block text-sm font-medium text-gray-300 mb-2">'.$error.'. Check the API key and try again later<br>&nbsp;</label>
-                <button onclick="clearApiKey()" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md w-full ">
-                    CLEAR API KEY
-                </button>
-            </form>
-        </body>
-    </html>
-    
-    <div class="text-center my-8"></div>
+function ranking($title, $id, $jsonId)
+{
+    global $randomId;
+    $randomId++;
+
+    echo "
+    <div class='chart-container bg-gray-800 shadow-md rounded-lg p-6 mb-8'>
+        <h2 class='text-2xl font-semibold mb-4'>$title</h2>
+        <ul id='$id' class='list-disc list-inside text-left'></ul>
     </div>
 
     <script>
-        function clearApiKey() {
-            localStorage.removeItem(\'API_KEY\');
-            location.href = location.href;
+    function generate$randomId()
+    {
+        let rankDiv = document.getElementById('$id');
+        jsonData.$jsonId.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = `\${item[0]} - \${item[1]}: \${item[2]} (\${item[3]} hits)`;
+            rankDiv.appendChild(li);
+        });
+    }
+    generate$randomId();
+    </script>
+    ";
+}
+
+function draw_pie_operation($id1, $id2, $json_id, $description, $description2)
+{   
+    global $randomId;
+    $randomId++;
+
+    echo "
+        <script>
+        function generate$randomId()
+        {
+            let combinedData = {};
+            Object.keys(jsonData.$json_id).forEach(key => {
+                const label1 = key.split('_')[0];
+                if (!combinedData[label1]) combinedData[label1] = 0;
+                combinedData[label1] += jsonData.".$json_id."[key];
+            });
+            const labels = Object.keys(combinedData);
+            const data = Object.values(combinedData);
+            createChart('$id1', labels, data, '$description', 'pie', generateColors(labels.length));
+
+            combinedData = {};
+            Object.keys(jsonData.$json_id).forEach(key => {
+                const label2 = key.split('_')[1];
+                if (!combinedData[label2]) combinedData[label2] = 0;
+                combinedData[label2] += jsonData.".$json_id."[key];
+            });
+
+            const labels2 = Object.keys(combinedData);
+            const data2 = Object.values(combinedData);
+            createChart('$id2', labels2, data2, '$description2', 'pie', generateColors(labels2.length));
+            
+            document.getElementById('".$id1."Count').innerText = Object.values(jsonData.$json_id).length.toString();
+            document.getElementById('".$id2."Count').innerText = Object.values(jsonData.$json_id).length.toString();
+            document.getElementById('".$id1."CountBlock').style.display = 'block';
+            document.getElementById('".$id2."CountBlock').style.display = 'block';
         }
-    </script>';
-    die();
+        generate$randomId();
+        </script>
+    ";
 }
 ?>
 <!DOCTYPE html>
@@ -137,58 +134,7 @@ if ($response === FALSE) {
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-
-<body class="bg-gray-900 text-gray-100"></body>
-    <h1 class="text-4xl font-bold text-center my-8">UniGetUI statistics report</h1>
-    <p class="text-lg text-center">Click any chart to enlarge it.</p>
-    <button onclick="clearApiKey()" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded fixed top-4 right-4">&nbsp;Log out&nbsp;</button>
-    <button onclick="location.href = location.href;" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded fixed top-4 right-32">&nbsp;Refresh&nbsp;</button>
-    
-    <br>
-    <div class="chart-container bg-gray-800 shadow-md rounded-lg p-6 mb-8">
-        <div class="text-center">
-            <span class="text-2xl font-semibold mb-4 text-center">Active user count: </span>
-            <span id="activeUserCount" class="text-6xl text-green-400 font-bold text-center"></span>
-        </div>
-    </div>
-    </div>
-    
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-1">
-    
-        <div class="chart-container bg-gray-800 shadow-md rounded-lg p-6 mb-8 relative" id="languagesChartContainer" onclick="toggleFullscreen('languagesChartContainer')">
-            <h2 class="text-2xl font-semibold mb-4">UI Language Share</h2>
-            <canvas id="languagesChart"></canvas>
-        </div>
-        <div class="chart-container bg-gray-800 shadow-md rounded-lg p-6 mb-8 relative" id="versionsChartContainer" onclick="toggleFullscreen('versionsChartContainer')">
-            <h2 class="text-2xl font-semibold mb-4">Version Share</h2>
-            <canvas id="versionsChart"></canvas>
-        </div>
-        <div class="chart-container bg-gray-800 shadow-md rounded-lg p-6 mb-8 relative" id="managersChartContainer" onclick="toggleFullscreen('managersChartContainer')">
-            <h2 class="text-2xl font-semibold mb-4">Package Managers</h2>
-            <canvas id="managersChart"></canvas>
-        </div>
-        <div class="chart-container bg-gray-800 shadow-md rounded-lg p-6 mb-8 relative" id="settingsChartContainer" onclick="toggleFullscreen('settingsChartContainer')">
-            <h2 class="text-2xl font-semibold mb-4">Enabled Settings</h2>
-            <canvas id="settingsChart"></canvas>
-        </div>
-    </div>
-    <div class="chart-container bg-gray-800 shadow-md rounded-lg p-6 mb-8">
-        <h2 class="text-2xl font-semibold mb-4">Package install ranking</h2>
-        <ul id="programRanking" class="list-disc list-inside text-left"></ul>
-    </div>
-
     <script>
-        function clearApiKey() {
-            localStorage.removeItem('API_KEY');
-            location.href = location.href;
-        }
-    </script>
-</body>
-
-<script>
-
         function toggleFullscreen(chartId) {
             const chartElement = document.getElementById(chartId);
             if (!document.fullscreenElement) {
@@ -284,8 +230,137 @@ if ($response === FALSE) {
 
         const jsonData = <?php echo $response; ?>;
 
+        function createChart(chartId, labels, data, label, type = 'bar', colors = [], options = {}) {
+            new Chart(document.getElementById(chartId), {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    ...options,
+                    plugins: {
+                        legend: {
+                            onClick: null,
+                            labels: {
+                                color: 'white'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-900 text-gray-100"></body>
+    <h1 class="text-4xl font-bold text-center my-8">UniGetUI statistics report</h1>
+    <p class="text-lg text-center">Click any chart to enlarge it.</p>
+    <button onclick="clearApiKey()" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded fixed top-4 right-4">&nbsp;Log out&nbsp;</button>
+    <button onclick="location.href = location.href;" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded fixed top-4 right-32">&nbsp;Refresh&nbsp;</button>
+    
+    <br>
+    <div class="chart-container bg-gray-800 shadow-md rounded-lg p-6 mb-8">
+        <div class="text-center">
+            <span class="text-2xl font-semibold mb-4 text-center">Active user count: </span>
+            <span id="activeUserCount" class="text-6xl text-green-400 font-bold text-center"></span>
+            <span class="text-1xl font-semibold mb-4 text-center">Average last connection time (in days): </span>
+            <span id="userCountLastPingAvg" class="text-3xl text-blue-400 font-bold text-center"></span>
+        </div>
+    </div>
+    </div>
+    
+<?php 
+begin_chart_zone("General statistics");    
+chart_div("languagesChart", "UI Language share");
+chart_div("versionsChart", "Version Share");
+chart_div("managersChart", "Package Managers");
+chart_div("settingsChart", "Enabled Settings");
+
+draw_pie("versionsChart", "active_versions", "Amount of clients running this version");
+end_chart_zone();
+
+// ----------------------------------------------
+
+begin_chart_zone(title: "Installed and downloaded packages");
+chart_div("installed_successFailure", "Install operations success ratio");
+chart_div("installed_byManager", "Installs per Package Manager");
+chart_div("downloaded_successFailure", "Download operations success ratio");
+chart_div("downloaded_byManager", "Downloads per Package Manager");
+chart_div("installDownload_referral", "Package discovering referral");
+
+draw_pie_operation("installed_byManager", "installed_successFailure", "install_count", "", "");
+draw_pie_operation("downloaded_byManager", "downloaded_successFailure", "download_count", "", "");
+draw_pie("installDownload_referral", "install_reason", "");
+end_chart_zone();
+
+// ----------------------------------------------
+
+begin_chart_zone(title: "Package updates");
+chart_div("updated_successFailure", "Update success ratio");
+chart_div("updated_byManager", "Updates per Package Manager");
+
+draw_pie_operation("updated_byManager", "updated_successFailure", "update_count", "", "");
+end_chart_zone();
+
+// ----------------------------------------------
+
+begin_chart_zone(title: "Package uninstalls");
+chart_div("uninstalls_successFailure", "Uninstall success ratio");
+chart_div("uninstalls_byManager", "Uninstalls per Package Manager");
+
+draw_pie_operation("uninstalls_byManager", "uninstalls_successFailure", "uninstall_count", "", "");
+end_chart_zone();
+
+// ----------------------------------------------
+
+begin_chart_zone(title: "Shared packages & Package Details");
+chart_div("SharedPackages", "Shared packages URI source");
+chart_div("PackageDetails_Source", "Shown package details origin");
+draw_pie("SharedPackages", "shared_packages", "");
+draw_pie("PackageDetails_Source", "shown_package_details", "");
+end_chart_zone();
+
+// ----------------------------------------------
+
+begin_chart_zone("Package bundles");
+chart_div("importedBundles", "Imported bundles");
+chart_div("exportedBundles", "Exported bundles");
+
+draw_pie("importedBundles", "imported_bundles", "Imported bundles of type");
+draw_pie("exportedBundles", "exported_bundles", "Exported bundles of type");
+end_chart_zone();
+
+ranking("Popular packages", "popularRanking", "popular_ranking");
+ranking("Installed packages", "installedRanking", "installed_ranking");
+ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalled_ranking");
+
+
+// ----------------------------------------------
+
+?>
+    <script>
+        function clearApiKey() {
+            localStorage.removeItem('API_KEY');
+            location.href = location.href;
+        }
+    </script>
+</body>
+
+<script>
+
         let userCount = document.getElementById("activeUserCount");
         userCount.innerHTML = jsonData.active_users;
+
+        let connectAvg = document.getElementById("userCountLastPingAvg");
+        connectAvg.innerHTML = (jsonData.avg_last_ping_timeDelta / (3600 * 24)).toFixed(2);
 
         const sortedLanguages = Object.entries(jsonData.active_languages).sort((a, b) => b[1] - a[1]);
         const languageLabels = sortedLanguages.map(([id]) => languageMap[id] || id);
@@ -299,11 +374,7 @@ if ($response === FALSE) {
             generateColors(languageLabels.length)
         );
 
-        let colors = generateColors(14)
-
-        
-        createChart("versionsChart", Object.keys(jsonData.active_versions), Object.values(jsonData.active_versions), "Active version share", 'pie', colors);
-        
+        let colors = generateColors(14)        
 
         const managers = [
                 "WinGet", 
@@ -421,43 +492,6 @@ if ($response === FALSE) {
                 }
             }
         );
-
-        const rankingList = document.getElementById("programRanking");
-        jsonData.program_ranking.forEach(item => {
-            const li = document.createElement("li");
-            li.textContent = `${item[0]} - ${item[1]} (${item[2]}) - Rank: ${item[3]}`;
-            rankingList.appendChild(li);
-        });
-        
-        function createChart(chartId, labels, data, label, type = 'bar', colors = [], options = {}) {
-            new Chart(document.getElementById(chartId), {
-                type: type,
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: label,
-                        data: data,
-                        backgroundColor: colors,
-                        borderWidth: 1
-                    }]
-                },
-                options: { 
-                    responsive: true, 
-                    ...options,
-                    plugins: {
-                        legend: {
-                            onClick: null,
-                            labels: {
-                                color: 'white'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        
-        
-
     </script>
 </body>
 </html>
