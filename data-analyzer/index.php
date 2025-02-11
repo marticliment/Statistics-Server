@@ -69,8 +69,8 @@ function do_login_and_get_response()
         $apiKey = $_POST['apikey'];
     }
 
-    // $url = "http://marticliment.com/unigetui/statistics/report";
-    $url = "http://localhost:3000/report";
+     $url = "http://marticliment.com/unigetui/statistics/report";
+    // $url = "http://localhost:3000/report";
 
     $options = [
         "http" => [
@@ -126,7 +126,7 @@ function begin_chart_zone($title)
 {
     echo /*html*/"
         <h1 class='text-4xl font-bold text-center my-8'>$title</h1>
-        <div class='grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-4 gap-1'>
+        <div class='widgetPanel'>
     ";
 
 }
@@ -136,29 +136,74 @@ function end_chart_zone()
     echo /*html*/"</div>";
 }
 
-function chart_div($id, $title, $padding=2, $margin=4, $bg = "bg-gray-800 shadow-md", $style = "")
+function chart_div($id, $title, $class = "chartDiv")
 {
     echo /*html*/"
-    <div class='chart-container $bg rounded-2xl p-$padding mb-$margin relative' id='".$id."Chart' onclick='toggleFullscreen(\"".$id."Chart\")' style='height: 100%;'>
-        <h2 class='text-xl mb-2'>$title</h2>
-        <p class='text-l mb-2' style='display: none' id='".$id."CountBlock'><span>Total results: </span><span class='text-blue-400 font-bold' id='".$id."Count'></span></p>
-        <div style='$style; display: flex; flex-direction: column; align-items: center;'><canvas id='$id'></canvas></div>
+    <div class='$class' id='".$id."Chart'>
+        <div id='".$id."ChartFS' class='fsBg'>
+            <h2 class='text-xl mb-2 alignCenter'>$title</h2>
+                <div class='flex justify-between items-center w-full mb-2 px-2'>
+                    <button onclick='toggleTable(\"".$id."\")' class='bg-blue-900 hover:bg-blue-700 text-white font-bold py-1 px-1 rounded-md text-xs align-middle'>
+                        <img src='./table.svg' alt='Fullscreen' class='w-6 h-6 p-0 align-middle'>
+                    </button>
+                    <p class='text-l alignCenter' style='display: none' id='".$id."CountBlock'><span>Analyzed samples: </span><span class='text-blue-400 font-bold' id='".$id."Count'></span></p>
+                    <button onclick='toggleFullscreen(\"".$id."ChartFS\")' class='bg-blue-900 hover:bg-blue-700 text-white font-bold py-1 px-1 rounded-md text-xs align-middle'>
+                        <img src='./fullscreen.svg' alt='Fullscreen' class='w-6 h-6 p-0 align-middle'>
+                    </button>
+                </div>
+            <div style='width: 100%; height: 100%; position: relative' id='".$id."scrollable'>
+                <canvas id='$id'></canvas>
+                <table id='".$id."table' class='tableDiv' style='position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: auto;'></table>
+            </div>
+        </div>
     </div>";
 }
 
 function draw_pie($id, $json_id, $description)
 {
+    global $randomId;
     echo /*html*/"
         <script>
+        function generate$randomId()
+        {
+            let SIZE = 0;
+            Object.values(jsonData.$json_id).forEach(element => {
+                SIZE += element;
+            });
+
+            let sortedData = Object.entries(jsonData.$json_id).sort((a, b) => b[1] - a[1]).reduce((acc, [key, value]) => {
+                acc[key] = value;
+                return acc;
+            }, {});
+
             createChart('$id', 
-                Object.keys(jsonData.$json_id), 
-                Object.values(jsonData.$json_id), 
-                '$description', 'pie', generateColors(Object.keys(jsonData.$json_id).length));
+                Object.keys(sortedData), 
+                Object.values(sortedData), 
+                '$description', 'pie', generateColors(Object.keys(sortedData).length));
             
-            document.getElementById('".$id."Count').innerText = Object.values(jsonData.$json_id).length.toString();
+            document.getElementById('".$id."Count').innerText = SIZE;
             document.getElementById('".$id."CountBlock').style.display = 'block';
+
+            let table = \"<table class='min-w-full bg-gray-800 text-gray-100'><thead><tr>\";
+            table += \"<th class='py-2 px-4 border-b border-gray-700'>Key</th>\";
+            table += \"<th class='py-2 px-4 border-b border-gray-700'>Value</th>\";
+            table += \"</tr></thead><tbody>\";
+
+            Object.entries(sortedData).forEach(([key, value]) => {
+                table += \"<tr>\";
+                table += `<td class='py-2 px-4 border-b border-gray-700'>\${key}</td>`;
+                table += `<td class='py-2 px-4 border-b border-gray-700'>\${value}</td>`;
+                table += \"</tr>\";
+            });
+
+            table += \"</tbody></table>\";
+            document.getElementById('".$id."table').innerHTML = table;
+            
+        }
+        generate$randomId();
         </script>
     ";
+    $randomId++;
 }
 function ranking($title, $id, $jsonId)
 {
@@ -188,18 +233,31 @@ function ranking($title, $id, $jsonId)
 function draw_pie_operation($id1, $id2, $id3, $json_id, $description, $description2)
 {   
     global $randomId;
-    $randomId++;
 
     echo /*html*/"
         <script>
         function generate$randomId()
         {
-            let data_perManager = {};
-            let data_perResult = {};
-            let data_success = {};
-            let data_failure = {};
+            let data_perManager = {
+                'Winget': 0,
+                'Chocolatey': 0,
+                'Scoop': 0,
+                'Npm': 0,
+                'Pip': 0,
+                'PowerShell': 0,
+                'PowerShell7': 0,
+                '.NET Tool': 0,
+                'Cargo': 0,
+                'vcpkg': 0,
+            };
+            let data_perResult = {SUCCESS: 0, FAILED: 0};
+            let data_success = JSON.parse(JSON.stringify(data_perManager));
+            let data_failure = JSON.parse(JSON.stringify(data_perManager));
             
-            const SIZE = Object.values(jsonData.$json_id).length;
+            let SIZE = 0;
+            Object.values(jsonData.$json_id).forEach(element => {
+                SIZE += element;
+            });;
 
             Object.keys(jsonData.$json_id).forEach(key => {
                 const MANAGER = key.split('_')[0];
@@ -215,13 +273,19 @@ function draw_pie_operation($id1, $id2, $id3, $json_id, $description, $descripti
                 else data_failure[MANAGER] += val;
             });
 
+            // PER MANAGER DISTRIBUTION
+            data_perManager = Object.keys(data_perManager).sort((a, b) => data_perManager[b] - data_perManager[a]).reduce((acc, key) => {
+                acc[key] = data_perManager[key];
+                return acc;
+            }, {});
             const labels1 = Object.keys(data_perManager);
             const data1 = Object.values(data_perManager);
             createChart('$id1', labels1, data1, '$description', 'pie', generateColors(labels1.length));
 
+            // SUCCESS RATIO
             const labels2 = Object.keys(data_perResult);
             const data2 = Object.values(data_perResult);
-            createChart('$id2', labels2, data2, '$description2', 'pie', generateColors(labels2.length));
+            createChart('$id2', labels2, data2, '$description2', 'pie', ['rgb(32, 255, 32)', 'rgb(255, 32, 32)']);
             
             document.getElementById('".$id1."Count').innerText = SIZE;
             document.getElementById('".$id2."Count').innerText = SIZE;
@@ -239,26 +303,75 @@ function draw_pie_operation($id1, $id2, $id3, $json_id, $description, $descripti
                 data3_2[i] = data3_2[i]/total*100;
             }
 
+            let table = \"<table class='bg-gray-800 text-gray-100'><thead><tr>\";
+            table += \"<th class='py-2 px-4 border-b border-gray-700'>Key</th>\";
+            table += \"<th class='py-2 px-4 border-b border-gray-700'>Value</th>\";
+            table += \"</tr></thead><tbody>\";
+
+            Object.entries(data_perResult).forEach(([key, value]) => {
+                table += \"<tr>\";
+                table += `<td class='py-2 px-4 border-b border-gray-700'>\${key}</td>`;
+                table += `<td class='py-2 px-4 border-b border-gray-700'>\${value}</td>`;
+                table += \"</tr>\";
+            });
+
+            table += \"</tbody></table>\";
+            document.getElementById('".$id2."table').innerHTML = table;
+
+            table = \"<table class='bg-gray-800 text-gray-100'><thead><tr>\";
+            table += \"<th class='py-2 px-4 border-b border-gray-700'>Key</th>\";
+            table += \"<th class='py-2 px-4 border-b border-gray-700'>Value</th>\";
+            table += \"</tr></thead><tbody>\";
+
+            Object.entries(data_perManager).forEach(([key, value]) => {
+                table += \"<tr>\";
+                table += `<td class='py-2 px-4 border-b border-gray-700'>\${key}</td>`;
+                table += `<td class='py-2 px-4 border-b border-gray-700'>\${value}</td>`;
+                table += \"</tr>\";
+            });
+
+            table += \"</tbody></table>\";
+            document.getElementById('".$id1."table').innerHTML = table;
+
+
+            table = \"<table class='bg-gray-800 text-gray-100'><thead><tr>\";
+            table += \"<th class='py-2 px-4 border-b border-gray-700'>Key</th>\";
+            table += \"<th class='py-2 px-4 border-b border-gray-700'>Success</th>\";
+            table += \"<th class='py-2 px-4 border-b border-gray-700'>Failure</th>\";
+            table += \"</tr></thead><tbody>\";
+
+            for(let i = 0; i < labels3.length; i++)
+            {
+                table += \"<tr>\";
+                table += `<td class='py-2 px-4 border-b border-gray-700'>`+labels3[i]+`</td>`;
+                table += `<td class='py-2 px-4 border-b border-gray-700'>`+data3_1[i].toFixed(1)+`%</td>`;
+                table += `<td class='py-2 px-4 border-b border-gray-700'>`+data3_2[i].toFixed(1)+`%</td>`;
+                table += \"</tr>\";
+            };
+
+            table += \"</tbody></table>\";
+            document.getElementById('".$id3."table').innerHTML = table;
+
+
             new Chart(document.getElementById('$id3'), {
                 type: 'bar',
                 data: {
                     labels: labels3,
                     datasets: [{
-                        label: 'SUCCEEDED',
+                        label: 'Success ratio',
                         data: data3_1,
-                        backgroundColor: 'rgb(64, 255, 64, 100%)'
+                        backgroundColor: 'rgb(32, 255, 32)'
                     }, 
                     {
-                        label: 'FAILED',
+                        label: 'Failure ratio',
                         data: data3_2,
-                        backgroundColor: 'rgb(255, 64, 64, 100%)'
+                        backgroundColor: 'rgb(255, 32, 32)'
                     }]
                 },
                 options: { 
                     responsive: true,
                     plugins: {
                         legend: {
-                            onClick: null,
                             labels: {
                                 color: 'white'
                             }
@@ -276,7 +389,6 @@ function draw_pie_operation($id1, $id2, $id3, $json_id, $description, $descripti
                     },
                     plugins: {
                         legend: {
-                            onClick: null,
                             labels: {
                                 color: 'white'
                             }
@@ -288,6 +400,7 @@ function draw_pie_operation($id1, $id2, $id3, $json_id, $description, $descripti
         generate$randomId();
         </script>
     ";
+    $randomId++;
 }
 
 
@@ -299,23 +412,18 @@ function operations_region($opName, $jsonId, $title)
     $id2 = "div$randomId"; $randomId++;
     $id3 = "div$randomId"; $randomId++;
 
-    echo /*html*/"
-        <div style='width: calc(100% - 80px); margin-left: 40px;'>
-            <h1 class='text-2xl font-bold text-center my-8'>$title</h1>
-            <div class='bg-gray-800 p-4 mb-6 rounded-2xl shadow-md' 
-                style='display: flex; flex-direction: row; align-items: center; gap: 6px; height: 400px; position: relative'>
-    ";
+    begin_chart_zone($title);
 
-    chart_div($id1, "$opName success rate", 0, 0, "", "height: calc(100% - 100px)");
+    chart_div($id1, "$opName success rate");
     $randomId++;
-    chart_div($id2, "$opName distribution per Package Manager", 0, 0, "", "height: calc(100% - 100px)");
+    chart_div($id2, $opName."s per Package Manager");
     $randomId++;
-    chart_div($id3, "$opName success rate per Package Manager", 0, 0, "", "height: calc(100% - 100px)");
+    chart_div($id3, "$opName success rate per Package Manager (in %)", "chartDiv biggerChartDiv");
     $randomId++;
 
     draw_pie_operation($id2, $id1, $id3, $jsonId, "", "");
 
-    echo "</div></div>";
+    end_chart_zone();
 }
 ?>
 <!DOCTYPE html>
@@ -335,10 +443,52 @@ function operations_region($opName, $jsonId, $title)
             text-align: center;
         }
         canvas {
-            max-width: 100%;
+            /* max-width: 100%; */
             max-height: calc(100vh - 100px); 
             max-width: calc(100vw - 60px);
-            cursor: pointer;
+        }
+        .widgetPanel
+        {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .chartDiv
+        {
+            width: min(350px, 100vw);
+            background-color: #1f2937;
+            border-radius: 16px;
+            padding: 0px;
+            margin: 8px;
+
+            flex-flow: column;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .tableDiv
+        {
+            visibility: hidden;
+        }
+        
+        .mediumChartDiv
+        {
+            width: min(500px, 100vw);
+        }
+        .biggerChartDiv
+        {
+            width: min(700px, 100vw);
+        }
+        .alignCenter {
+            text-align: center;
+        }
+        .fsBg{
+            background-color: #1f2937;
+            border-radius: 12px;
+            width: 100%; 
+            height: 100%;
+            padding: 8px;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -355,7 +505,7 @@ function operations_region($opName, $jsonId, $title)
                 } else if (chartElement.msRequestFullscreen) { // IE/Edge
                     chartElement.msRequestFullscreen();
                 }
-            }/* else {
+            } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
                 } else if (document.mozCancelFullScreen) { // Firefox
@@ -365,15 +515,33 @@ function operations_region($opName, $jsonId, $title)
                 } else if (document.msExitFullscreen) { // IE/Edge
                     document.msExitFullscreen();
                 }
-            }*/
+            }
+        }
+
+        function toggleTable(id)
+        {
+            let chartDiv = document.getElementById(id);
+            let tableDiv = document.getElementById(id+"table");
+            let scrollDiv = document.getElementById(id+"scrollable")
+
+            if(tableDiv.style.visibility == "visible")
+            {
+                chartDiv.style.visibility = "visible";
+                tableDiv.style.visibility = "hidden";
+                scrollDiv.style.overflow = "hidden";
+            } else {
+                chartDiv.style.visibility = "hidden";
+                tableDiv.style.visibility = "visible";
+                scrollDiv.style.overflow = "auto";
+            }
         }
 
         function generateColors(numColors) {
             const colors = [];
             for (let i = 0; i < numColors; i++) {
                 const hue = (30 + (i * 360 / numColors)) % 360; // Distribute hues evenly
-                const saturation = 100; // Fixed saturation
-                const lightness = 56; // Fixed lightness
+                const saturation = 70; // Fixed saturation
+                const lightness = 50; // Fixed lightness
                 const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
                 colors.push(color);
             }
@@ -455,7 +623,6 @@ function operations_region($opName, $jsonId, $title)
                     ...options,
                     plugins: {
                         legend: {
-                            onClick: null,
                             labels: {
                                 color: 'white'
                             }
@@ -487,13 +654,13 @@ function operations_region($opName, $jsonId, $title)
     
 <?php 
 begin_chart_zone("General statistics");    
-chart_div("languagesChart", "UI Language share");
+chart_div("languagesChart", "UI Language share", "chartDiv mediumChartDiv");
 chart_div("versionsChart", "Version Share");
-chart_div("managersChart", "Package Managers");
-chart_div("settingsChart", "Enabled Settings");
-chart_div("installDownload_referral", "Package discovering referral");
-chart_div("operation_types", "Operation types");
+chart_div("managersChart", "Package Managers (in %)", "chartDiv biggerChartDiv");
+chart_div("settingsChart", "Enabled Settings (in %)", "chartDiv biggerChartDiv");
 
+chart_div("operation_types", "Performed operations through UniGetUI");
+chart_div("installDownload_referral", title: "Source of installed & downloaded packages");
 
 draw_pie("versionsChart", "active_versions", "Amount of clients running this version");
 draw_pie("installDownload_referral", "install_reason", "");
@@ -587,12 +754,12 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
             data: {
                 labels: managers,
                 datasets: [{
-                    label: "Enabled",
+                    label: "ENABLED",
                     data: jsonData.active_managers.filter((_, index) => index % 2 === 0),
                     backgroundColor: 'rgb(122, 122, 122, 100%)'
                 }, 
                 {
-                    label: "Enabled and Found",
+                    label: "ENABLED & FOUND",
                     data: jsonData.active_managers.filter((_, index) => index % 2 === 1),
                     backgroundColor: 'rgb(0, 255, 127, 100%)'
                 }]
@@ -601,7 +768,6 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
                 responsive: true,
                 plugins: {
                     legend: {
-                        onClick: null,
                         labels: {
                             color: 'white'
                         }
@@ -621,7 +787,6 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
                 },
                 plugins: {
                     legend: {
-                        onClick: null,
                         labels: {
                             color: 'white'
                         }
@@ -649,7 +814,7 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
                 "Launched at startup"
             ], 
             jsonData.active_settings, 
-            "Current data", 
+            "% of users", 
             'bar', 
             colors,
             {
@@ -678,7 +843,6 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
                         }
                     },
                     legend: {
-                        onClick: null,
                         labels: {
                             color: 'white'
                         }
@@ -706,7 +870,11 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
             generateColors(operationLabels.length)
         );
 
-        createChart("operation_types", [], [], "", "pie");
+        let op_size = 0;
+        operationData.forEach(element => {
+            op_size += element;
+        });
+
     </script>
 </body>
 </html>
