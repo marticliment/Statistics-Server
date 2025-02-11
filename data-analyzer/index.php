@@ -659,8 +659,8 @@ chart_div("versionsChart", "Version Share");
 chart_div("managersChart", "Package Managers (in %)", "chartDiv biggerChartDiv");
 chart_div("settingsChart", "Enabled Settings (in %)", "chartDiv biggerChartDiv");
 
-chart_div("operation_types", "Performed operations through UniGetUI");
-chart_div("installDownload_referral", title: "Source of installed & downloaded packages");
+chart_div("operation_types", "Performed operations");
+chart_div("installDownload_referral", title: "INST+DWNLD package source");
 
 draw_pie("versionsChart", "active_versions", "Amount of clients running this version");
 draw_pie("installDownload_referral", "install_reason", "");
@@ -674,9 +674,6 @@ operations_region("Download", "download_count", "Download operations");
 operations_region("Update", "update_count", "Update operations");
 operations_region("Uninstall", "uninstall_count", "Uninstall operations");
 
-
-begin_chart_zone(title: "Installed and downloaded packages");
-end_chart_zone();
 
 // ----------------------------------------------
 
@@ -731,9 +728,27 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
             languageLabels, 
             languageData, 
             "Percentage of Users", 
-            'doughnut', 
+            'pie', 
             generateColors(languageLabels.length)
         );
+
+        let table = "<table class='bg-gray-800 text-gray-100'><thead><tr>";
+        table += "<th class='py-2 px-4 border-b border-gray-700'>Key</th>";
+        table += "<th class='py-2 px-4 border-b border-gray-700'>Success</th>";
+        table += "</tr></thead><tbody>";
+
+        for(let i = 0; i < languageLabels.length; i++)
+        {
+            table += "<tr>";
+            table += `<td class='py-2 px-4 border-b border-gray-700'>`+languageLabels[i]+`</td>`;
+            table += `<td class='py-2 px-4 border-b border-gray-700'>${languageData[i].toLocaleString()}</td>`;
+            table += "</tr>";
+        };
+
+        table += "</tbody></table>";
+        document.getElementById('languagesCharttable').innerHTML = table;
+
+
 
         let colors = generateColors(14)        
 
@@ -749,18 +764,21 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
                 "PowerShell5",
                 "PowerShell7",
         ];
+
+        const managers_data1 = jsonData.active_managers.filter((_, index) => index % 2 === 0);
+        const managers_data2 = jsonData.active_managers.filter((_, index) => index % 2 === 1);
         new Chart(document.getElementById("managersChart"), {
             type: "bar",
             data: {
                 labels: managers,
                 datasets: [{
                     label: "ENABLED",
-                    data: jsonData.active_managers.filter((_, index) => index % 2 === 0),
+                    data: managers_data1,
                     backgroundColor: 'rgb(122, 122, 122, 100%)'
                 }, 
                 {
                     label: "ENABLED & FOUND",
-                    data: jsonData.active_managers.filter((_, index) => index % 2 === 1),
+                    data: managers_data2,
                     backgroundColor: 'rgb(0, 255, 127, 100%)'
                 }]
             },
@@ -794,10 +812,26 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
                 }
             }
         });
-        
-        createChart(
-            "settingsChart", 
-            [
+
+        table = "<table class='bg-gray-800 text-gray-100'><thead><tr>";
+        table += "<th class='py-2 px-4 border-b border-gray-700'>Manager</th>";
+        table += "<th class='py-2 px-4 border-b border-gray-700'>Enabled</th>";
+        table += "<th class='py-2 px-4 border-b border-gray-700'>Enabled & found</th>";
+        table += "</tr></thead><tbody>";
+
+        for(let i = 0; i < managers.length; i++)
+        {
+            table += "<tr>";
+            table += `<td class='py-2 px-4 border-b border-gray-700'>`+managers[i]+`</td>`;
+            table += `<td class='py-2 px-4 border-b border-gray-700'>${managers_data1[i].toFixed(1)}%</td>`;
+            table += `<td class='py-2 px-4 border-b border-gray-700'>${managers_data2[i].toFixed(1)}%</td>`;
+            table += "</tr>";
+        };
+
+        table += "</tbody></table>";
+        document.getElementById('managersCharttable').innerHTML = table;
+
+        const settingsNames  = [
                 "Self Update",
                 "Self Update (PreRelease)",
                 "System Tray",
@@ -812,7 +846,10 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
                 "System Chocolatey",
                 "Portable install",
                 "Launched at startup"
-            ], 
+            ];
+        createChart(
+            "settingsChart", 
+            settingsNames, 
             jsonData.active_settings, 
             "% of users", 
             'bar', 
@@ -851,12 +888,30 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
             }
         );
 
-        const operationTypes = {
-            "Download": jsonData.download_count,
-            "Install": jsonData.install_count,
-            "Update": jsonData.update_count,
-            "Uninstall": jsonData.uninstall_count
+        table = "<table class='bg-gray-800 text-gray-100'><thead><tr>";
+        table += "<th class='py-2 px-4 border-b border-gray-700'>Setting</th>";
+        table += "<th class='py-2 px-4 border-b border-gray-700'>Enabled</th>";
+        table += "</tr></thead><tbody>";
+
+        for(let i = 0; i < settingsNames.length; i++)
+        {
+            table += "<tr>";
+            table += `<td class='py-2 px-4 border-b border-gray-700'>`+settingsNames[i]+`</td>`;
+            table += `<td class='py-2 px-4 border-b border-gray-700'>${jsonData.active_settings[i].toFixed(1)}%</td>`;
+            table += "</tr>";
         };
+
+        table += "</tbody></table>";
+        document.getElementById('settingsCharttable').innerHTML = table;
+
+
+        let operationTypes = {
+            "Update": jsonData.update_count,
+            "Install": jsonData.install_count,
+            "Uninstall": jsonData.uninstall_count,
+            "Download": jsonData.download_count,
+        };
+        
 
         const operationLabels = Object.keys(operationTypes);
         const operationData = Object.values(operationTypes).map(values => Object.values(values).reduce((a, b) => a + b, 0));
@@ -870,10 +925,32 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
             generateColors(operationLabels.length)
         );
 
+        table = "<table class='bg-gray-800 text-gray-100'><thead><tr>";
+        table += "<th class='py-2 px-4 border-b border-gray-700'>OperationType</th>";
+        table += "<th class='py-2 px-4 border-b border-gray-700'>Count</th>";
+        table += "</tr></thead><tbody>";
+
+        for(let i = 0; i < operationLabels.length; i++)
+        {
+            table += "<tr>";
+            table += `<td class='py-2 px-4 border-b border-gray-700'>`+operationLabels[i]+`</td>`;
+            table += `<td class='py-2 px-4 border-b border-gray-700'>${operationData[i]}</td>`;
+            table += "</tr>";
+        };
+
+        table += "</tbody></table>";
+        document.getElementById('operation_typestable').innerHTML = table;
+
+
         let op_size = 0;
         operationData.forEach(element => {
             op_size += element;
         });
+
+        document.getElementById('operation_typesCount').innerText = op_size;
+        document.getElementById('operation_typesCountBlock').style.display = 'block';
+
+
 
     </script>
 </body>
