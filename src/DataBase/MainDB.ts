@@ -107,6 +107,7 @@ export class MainDB {
         else avgTime = -1;
 
         return {
+            timestamp_utc_seconds: Math.floor(new Date().getTime() / 1000),
             active_users: this.ActiveUsers.Size(),
             avg_last_ping_timeDelta: avgTime,
             active_versions: this.ActiveVersions.GetReport_ByShareMap(),
