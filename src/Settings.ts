@@ -28,7 +28,11 @@ export class Settings
     
     static PORT = 3000;
     static HOSTNAME = "127.0.0.1";
-    static DATA_FOLDER = "./data"
+    static DATA_FOLDER = "./data";
+    static RESULTS_FOLDER = "./results";
+    
+    static FLAGS_FOLDER = "./flags"
+    static SAVE_RESULTS_FLAG = "SaveResultsToDisk";
 
     static REDIRECT_URL_WHEN_INVALID_ENDPOINT = "https://www.marticliment.com/unigetui"
 
@@ -43,6 +47,7 @@ export class Settings
 
     // The interval of time in which inactive users are purged
     static INACTIVE_USER_PURGE_INTERVAL = 3600;
+
 
     // Clients may do up to 10 requests per second
     static MAX_REQUESTS_PER_SECOND = 10;

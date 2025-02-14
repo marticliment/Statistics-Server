@@ -99,4 +99,55 @@ export class MainDB {
         }
     }
 
+    static GenerateReport(rank_size: number): object
+    {
+        // MainDB.PurgeUsers();
+        let avgTime = MainDB.ActiveUsers.GetReport_Average();
+        if(avgTime != 0) avgTime = (new Date().getTime() - avgTime)/1000;
+        else avgTime = -1;
+
+        return {
+            active_users: this.ActiveUsers.Size(),
+            avg_last_ping_timeDelta: avgTime,
+            active_versions: this.ActiveVersions.GetReport_ByShareMap(),
+            active_languages: this.ActiveLanguages.GetReport_ByShareMap(),
+            active_managers: this.ActiveManagers.GetReport_ByBitMask(),
+            active_settings: this.ActiveSettings.GetReport_ByBitMask(),
+            
+            popular_ranking: this.PopularRanking.GetProgramRanking(rank_size),
+            installed_ranking: this.InstallsRanking.GetProgramRanking(rank_size),
+            uninstalled_ranking: this.UninstalledRanking.GetProgramRanking(rank_size),
+
+            imported_bundles: this.ImportedBundles.GetReport_ByShareMap(),
+            exported_bundles: this.ExportedBundles.GetReport_ByShareMap(),
+            install_count: this.InstallCount.GetReport_ByShareMap(),
+            install_reason: this.InstallReason.GetReport_ByShareMap(),
+            download_count: this.DownloadCount.GetReport_ByShareMap(),
+            update_count: this.UpdateCount.GetReport_ByShareMap(),
+            uninstall_count: this.UninstallCount.GetReport_ByShareMap(),
+            shown_package_details: this.ShownPackageDetails.GetReport_ByShareMap(),
+            shared_packages: this.SharedPackages.GetReport_ByShareMap(),
+        }
+    } 
+
+    static SaveResultsIfFlagSet()
+    {
+        try {
+            const flagPath = `${Settings.FLAGS_FOLDER}/${Settings.SAVE_RESULTS_FLAG}`;
+            if(fs.existsSync(flagPath))
+            {            
+                fs.unlinkSync(flagPath);
+                let contents: string = JSON.stringify(this.GenerateReport(15));
+                const fileName = `results-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+                const filePath = `${Settings.RESULTS_FOLDER}/${fileName}`;
+                // console.log(`Saving file ${filePath}`);
+                fs.writeFileSync(filePath, contents);
+            }
+        } 
+        catch (e)
+        {
+            console.error(`Failed to save results file due to ${e}`);
+        }
+    }
+
 }

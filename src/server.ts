@@ -114,6 +114,12 @@ if (Settings.IS_DEBUG) {
 if (!fs.existsSync(Settings.DATA_FOLDER))
     fs.mkdirSync(Settings.DATA_FOLDER);
 
+if (!fs.existsSync(Settings.RESULTS_FOLDER))
+    fs.mkdirSync(Settings.RESULTS_FOLDER);
+
+if (!fs.existsSync(Settings.FLAGS_FOLDER))
+    fs.mkdirSync(Settings.FLAGS_FOLDER);
+
 MainDB.LoadFromDisk();
 
 // Purge inactive users.
@@ -122,6 +128,7 @@ MainDB.PurgeUsers();
 setInterval(() => MainDB.SaveToDisk(), Settings.SAVE_ON_DISK_INTERVAL * 1000);
 setInterval(() => MainDB.ClearRankingAdditionCache(), Settings.INSTALL_PROGRAMS_CACHE_CLEAN_INTERVAL * 1000);
 setInterval(() => MainDB.PurgeUsers(), Settings.INACTIVE_USER_PURGE_INTERVAL * 1000);
+setInterval(() => MainDB.SaveResultsIfFlagSet(), 10 * 1000);
 
 setInterval(() => BannedUsers.ResetActivityCount(), 1000);
 setInterval(() => BannedUsers.PardonBanned(), Settings.USER_BAN_PARDON_TIMEOUT * 1000);

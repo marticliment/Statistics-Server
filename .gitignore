@@ -6,3 +6,5 @@ src/ActiveUsers.json
 /src/tests-data
 src/build_and_push.cmd
 /src/out
+/src/results
+/src/flags
