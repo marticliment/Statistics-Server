@@ -139,7 +139,7 @@ export class MainDB {
             {            
                 fs.unlinkSync(flagPath);
                 let contents: string = JSON.stringify(this.GenerateReport(15));
-                const fileName = `results-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+                const fileName = `${Math.floor(new Date().getTime() / 1000)}.json`;
                 const filePath = `${Settings.RESULTS_FOLDER}/${fileName}`;
                 // console.log(`Saving file ${filePath}`);
                 fs.writeFileSync(filePath, contents);

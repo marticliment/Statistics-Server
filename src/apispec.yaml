@@ -384,7 +384,7 @@ paths:
 
 
 
-  /report:
+  /report/get-current:
     parameters:
       - in: header
         name: apiKey
@@ -392,7 +392,7 @@ paths:
         schema:
           type: string
     get:
-      summary: Get a report of the data on the server
+      summary: Get a report of the data on the server for the current instant of time
       responses:
         "200":
           description: The report has been generated and returned as a JSON object
@@ -402,6 +402,64 @@ paths:
                 type: object
         "403":
           description: Access denied.
+        "406":
+          description: Invalid or missing parameter(s).
+        "429":
+          description: Too many requests
+        "500":
+          description: Internal server error.
+  
+  /report/list-current:
+    parameters:
+      - in: header
+        name: apiKey
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get a list of available reports
+      responses:
+        "200":
+          description: The report list has been returned
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          description: Access denied.
+        "406":
+          description: Invalid or missing parameter(s).
+        "429":
+          description: Too many requests
+        "500":
+          description: Internal server error.
+
+
+  /report/get-public:
+    parameters:
+      - in: header
+        name: reportId
+        required: true
+        schema:
+          type: integer
+      - in: header
+        name: apiKey
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get an old report of the data on the server. The identifier (timestamp) of the report must be passed. Passing -1 as an argument will retrieve the latest result.
+      responses:
+        "200":
+          description: The report exists and has been returned as a JSON
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          description: Access denied.
+        "404":
+          description: No such report was found
         "406":
           description: Invalid or missing parameter(s).
         "429":

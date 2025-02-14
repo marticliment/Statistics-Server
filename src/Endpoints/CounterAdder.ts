@@ -15,7 +15,7 @@ export class CounterAdder
             const user_id = Utils.ProcessUserId(Utils.GetHeader(req, "clientId"));
             const bundleType = Utils.GetHeader(req, "bundleType");
                     
-            if(Utils.Invalid(bundleType) )
+            if(Utils.Invalid(bundleType))
             {
                 res.statusCode = 406;
             }

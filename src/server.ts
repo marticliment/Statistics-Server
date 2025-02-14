@@ -2,13 +2,13 @@ import http from 'http';
 import { Health } from './Endpoints/Health.ts';
 import { UserActivity } from './Endpoints/UserActivity.ts';
 import { MainDB } from './DataBase/MainDB.ts'
-import { GenerateReport } from './Endpoints/GenerateReport.ts';
 import fs from 'fs';
 import { Settings } from './Settings.ts';
 import { BannedUsers } from './Banner.ts';
 import { PackageOPs } from './Endpoints/ProgramRanking.ts';
 import { getMaxListeners } from 'events';
 import { CounterAdder } from './Endpoints/CounterAdder.ts';
+import { PublicResults as StatisticsResults } from './Endpoints/AnalyticsResults.ts';
 
 const server = http.createServer((req, res) => {
     try {
@@ -71,10 +71,21 @@ const server = http.createServer((req, res) => {
                 break;
 
 
+            
+            // Gets the report for a given id
+            case "/report/get-public":
+                StatisticsResults.GetReportFromId(req, res);
+                break;
+            
+            // Lists the available reports
+            case "/report/list-public":
+                StatisticsResults.ReturnAvailableResults(req, res);
+                break;
+
 
             // Generates a report of the current server data
-            case "/report":
-                GenerateReport.Respond(req, res);
+            case "/report/get-current":
+                StatisticsResults.GenerateReport_CurrentInstant(req, res);
                 break;
 
             default:
@@ -92,7 +103,8 @@ const server = http.createServer((req, res) => {
         }
         res.end();
     }
-    catch (ex) {
+    catch (ex) 
+    {
         try {
             res.statusCode = 500;
             res.end();
