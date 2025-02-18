@@ -616,7 +616,14 @@ function operations_region($opName, $jsonId, $title)
 
         <div id="progressBar" class="fixed top-0 left-0 w-full bg-blue-500" style="z-index: 3; transition: 0.4s; height: 40px;"></div>
         <script>
+
+            let lastPgsListener_1 = -1;
+            let lastPgsListener_2 = -1;
+
             function showProgressBar() {
+                if(lastPgsListener_1 != -1) clearTimeout(lastPgsListener_1);
+                if(lastPgsListener_2 != -1) clearTimeout(lastPgsListener_2);
+
                 const progressBar = document.getElementById('progressBar');
                 progressBar.style.opacity = '1';
                 progressBar.style.display = 'block';
@@ -637,11 +644,11 @@ function operations_region($opName, $jsonId, $title)
                 let progress = document.getElementById('progressBar');
                 progressBar.style.width = "100%";
                 
-                setTimeout(() => {
+                lastPgsListener_1 = setTimeout(() => {
                     progressBar.style.opacity = '0';
                 }, 400);
 
-                setTimeout(() => {
+                lastPgsListener_2 = setTimeout(() => {
                     progressBar.style.display = 'none';
                 }, 1000);
             }
@@ -1055,8 +1062,8 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
 
     <script>
 
-        const HOST = "";
-        // const HOST = "https://www.marticliment.com"
+        // const HOST = "";
+        const HOST = "https://www.marticliment.com"
 
         const pgsbar = showProgressBar();
         fetch(HOST + '/unigetui/statistics/report/list-public', {
@@ -1097,9 +1104,6 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
 
 
         let pageReference = {
-            1: { name: "Object1", value: 10 },
-            2: { name: "Object2", value: 20 },
-            3: { name: "Object3", value: 30 }
         };
 
         function selectReport() {
@@ -1107,10 +1111,11 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
             
             if (pageReference.hasOwnProperty(selectedReport)) {
                 loadData(pageReference[selectedReport])
+                console.log(`Response for reportId ${selectedReport} was cached`)
                 return;
             }
-            
             const pgsbar = showProgressBar();
+            
             // alert('Selected report: ' + selectedReport);
             fetch(HOST + `/unigetui/statistics/report/get-${selectedReport == 0? "current" : "public"}`, {
                 headers: {
@@ -1121,9 +1126,9 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
             .then(response => response.json())
             .then(data => 
             {
-                hideProgressBar(pgsbar);
-                if(selectReport != 0) pageReference[selectedReport] = data;
+                if(selectedReport != 0) { pageReference[selectedReport] = data; }
                 loadData(data)
+                hideProgressBar(pgsbar);
             })
             .catch(err => 
             {
