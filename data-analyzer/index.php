@@ -1062,8 +1062,8 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
 
     <script>
 
-        // const HOST = "";
-        const HOST = "https://www.marticliment.com"
+        const HOST = "";
+        // const HOST = "https://www.marticliment.com"
 
         const pgsbar = showProgressBar();
         fetch(HOST + '/unigetui/statistics/report/list-public', {
