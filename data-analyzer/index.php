@@ -47,70 +47,11 @@ function do_login_and_get_response()
         ";
         die();
     }
-    /*else if (isset($_GET["post_apikey"]))
-    {
-        echo html"
-        <html>
-        <body>
-        <form id='form' style='visibility: hidden'></form>
-        <script>
-            const Xvalue = localStorage.getItem('API_KEY');
-            const form = document.getElementById('form');
-            form.method = 'POST';
-            form.action = location.href.replace('?post_apikey=true', '');
-
-            const hiddenField = document.createElement('input');
-            hiddenField.type = 'hidden';
-            hiddenField.name = 'apikey';
-            hiddenField.value = Xvalue;
-
-            form.appendChild(hiddenField);
-            document.body.appendChild(form);
-            document.body.style.display = 'none';
-            form.submit();
-        </script>
-        </body>
-        </html>
-        ";
-        die();
-    }
-    else if (!isset($_POST['apikey']))
-    {
-        header("Location: " . $_SERVER['PHP_SELF'] . "?post_apikey=true");
-        exit();
-    } 
-    else 
-    {
-        $apiKey = $_POST['apikey'];
-    }*/
-
-   /* $url = "http://marticliment.com/unigetui/statistics/report/get-current";
-    // $url = "http://localhost:3000/report";
-
-    $options = [
-        "http" => [
-            "header" => "apiKey: $apiKey\r\n"
-        ]
-    ];
-
-    $debug = false;
-    if($debug) echo "<br><br>";
-    else error_reporting(0);
-    // $context = stream_context_create($options);
-    // $response = file_get_contents($url, false, $context);
-    // $response = "false";
-    $error = "";
-    if ($response === FALSE) {
-        return "false";
-    }
-    return $response;*/
 }
 
-
-$response = do_login_and_get_response();
+do_login_and_get_response();
 
 $randomId = 0;
-
 $generators = [];
 
 function begin_chart_zone($title)
@@ -661,28 +602,66 @@ function operations_region($opName, $jsonId, $title)
 <h1 class="text-4xl font-bold text-center my-8 pt-10">UniGetUI statistics report</h1>
 <p class="text-lg text-center">Click any chart to enlarge it.</p>
 
-<div style="width: 100%; height: auto; position: fixed; top: 0px; left: 0px; display: flex; flex-direction: row; justify-content: space-between; z-index: 10;"
-    class="bg-blue-900">
+<div style="width: 100%; height: 40px; position: fixed; top: 0px; left: 0px; z-index: 2;"
+    class="bg-blue-900"></div>
+
+
+<div style="width: 100%; height: 40px; position: fixed; top: 0px; left: 0px; display: flex; flex-direction: row; justify-content: space-between; z-index: 4;">
     <div style="padding: 0px" class="mx-2">
         <!--h2 class="text-2xl font-semibold mb-4 text-center">Report: </h2-->
-        <select id="reportSelect" 
+        <select id="reportSelect" onchange="selectReport()" style="outline: 0px;"
             class="bg-gray-800 text-white font-semibold py-1 px-4 my-1 transition duration-100 mx-0"></select>
             
-        <button onclick="selectReport()" id="ReportSelectButton"
-            class="bg-gray-800 text-white font-semibold py-1 px-4 my-1 transition duration-100 mx-0">Load</button>
+        <button onclick="selectReport()" id="ReportSelectButton" 
+            class="bg-gray-800 text-white font-semibold py-1 px-4 my-1 transition duration-100 mx-0">Reload</button>
     </div>
     <div>  
-        <button onclick="document.getElementById('fileInput').click()"
-            class="bg-blue-900 hover:bg-blue-700 text-white font-semibold py-2 px-4 transition duration-100 mx-0">From JSON</button>
-        <button onclick="exportToJson()"
-            class="bg-blue-900 hover:bg-blue-700 text-white font-semibold py-2 px-4 transition duration-100 mx-0">Export to JSON</button>
-        <button onclick="selectPublicReport()"
-            class="bg-blue-900 hover:bg-blue-700 text-white font-semibold py-2 px-4 transition duration-100 mx-0">Select from archive</button>
-    
-        <button onclick="clearApiKey()" id="ApiKeyButton"
-            class="bg-blue-900 text-white font-semibold py-2 px-4 mx-0 transition duration-100">N/A</button>
+        <button onclick="document.getElementById('fileInput').click()" 
+            class=" hover:bg-blue-700 text-white font-semibold py-2 px-4 transition duration-100 mx-0">From JSON</button>
+        <button onclick="exportToJson()" 
+            class=" hover:bg-blue-700 text-white font-semibold py-2 px-4 transition duration-100 mx-0">Export to JSON</button>    
+        <button onclick="clearApiKey()" id="ApiKeyButton" 
+            class=" text-white font-semibold py-2 px-4 mx-0 transition duration-100">N/A</button>
     </div>
 </div>
+
+        <div id="progressBar" class="fixed top-0 left-0 w-full bg-blue-500" style="z-index: 3; transition: 0.4s; height: 40px;"></div>
+        <script>
+            function showProgressBar() {
+                const progressBar = document.getElementById('progressBar');
+                progressBar.style.opacity = '1';
+                progressBar.style.display = 'block';
+                progressBar.style.width = '0%';
+                let width = 0;
+                const interval = setInterval(() => {
+                    width += 4;
+                    progressBar.style.width = width + '%';
+                    if (width >= 100) {
+                        width = 0;
+                    }
+                }, 10);
+                return interval;
+            }
+
+            function hideProgressBar(interval) {
+                clearInterval(interval);
+                let progress = document.getElementById('progressBar');
+                progressBar.style.width = "100%";
+                
+                setTimeout(() => {
+                    progressBar.style.opacity = '0';
+                }, 400);
+
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                }, 1000);
+            }
+
+            const progressBarInterval = showProgressBar();
+            window.addEventListener('load', () => hideProgressBar(progressBarInterval));
+        </script>
+
+
 <br>
 <div class="chart-container bg-gray-800 shadow-md rounded-lg p-6 mb-8">
     <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center;">
@@ -1008,7 +987,10 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
 
 <script>
 
+    let currentData = {};
+
     function loadData(jsonData) {
+        currentData = jsonData;
         generateCustom(jsonData);
         <?php
             for ($i = 0; $i < sizeof($generators); $i++) {
@@ -1023,7 +1005,6 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
     
     if(localStorage.getItem('API_KEY'))
     {
-        // loadData(jsonData)
         reloadButton.style.visibility = "visible";
         reloadCombo.style.visibility = "visible";
         login.innerText = "Close API Key session";
@@ -1066,7 +1047,7 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
 
     function exportToJson()
     {
-        const dataStr = JSON.stringify(jsonData, null, 2);
+        const dataStr = JSON.stringify(currentData, null, 2);
         const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
 
         const exportFileDefaultName = 'data.json';
@@ -1078,12 +1059,11 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
     }
     </script>
 
-            <!--h2 class="text-2xl font-semibold mb-4 text-center">Report: </h2>
-            <select id="reportSelect" class="bg-gray-700 text-white font-semibold py-2 px-4 mb-4 w-full">
-            <button onclick="selectReport()" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 ml-2">Select</button-->
+
 
     <script>
 
+        const pgsbar = showProgressBar();
         fetch('https://www.marticliment.com/unigetui/statistics/report/list-public', {
             headers: {
                 'apiKey': localStorage.getItem('API_KEY')
@@ -1112,11 +1092,17 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
                 option.textContent = date.toLocaleString();
                 reportSelect.appendChild(option);
             });
+            hideProgressBar(pgsbar);
         })
-        .catch(error => console.error('Error fetching reports:', error));
+        .catch(error => 
+        {
+            console.error('Error fetching reports:', error)
+            hideProgressBar(pgsbar);
+        });
 
 
         function selectReport() {
+            const pgsbar = showProgressBar();
             const selectedReport = document.getElementById('reportSelect').value;
             // alert('Selected report: ' + selectedReport);
             fetch(`https://www.marticliment.com/unigetui/statistics/report/get-${selectedReport == 0? "current" : "public"}`, {
@@ -1128,9 +1114,14 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
             .then(response => response.json())
             .then(data => 
             {
+                hideProgressBar(pgsbar);
                 loadData(data)
             })
-            .catch(err => alert("Failed to load report (status code " + err.status + "): " + err.message))
+            .catch(err => 
+            {
+                alert("Failed to load report (status code " + err.status + "): " + err.message);
+                hideProgressBar(pgsbar);
+            });
         }
 
         selectReport();
