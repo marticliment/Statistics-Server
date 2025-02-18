@@ -4,28 +4,12 @@ function do_login_and_get_response()
     if (isset($_GET['ask_api_key'])) {
         echo "
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('form');
-            const input = document.getElementById('API_KEY');
 
-            form.addEventListener('submit', function(event) {
-                event.preventDefault();
-                const Xvalue = input.value;
-                localStorage.setItem('API_KEY', Xvalue);
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = location.href.replace('?ask_api_key=true', '');
-
-                const hiddenField = document.createElement('input');
-                hiddenField.type = 'hidden';
-                hiddenField.name = 'apikey';
-                hiddenField.value = Xvalue;
-
-                form.appendChild(hiddenField);
-                document.body.appendChild(form);
-                form.submit();
-            });
-        });
+            function saveKey() 
+            {
+                localStorage.setItem('API_KEY', document.getElementById('API_KEY').value);
+                location.href = location.href.replace('?ask_api_key=true', '');
+            }
         </script>
 
         <!DOCTYPE html>
@@ -37,11 +21,11 @@ function do_login_and_get_response()
                 <link href='https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css' rel='stylesheet'>
             </head>
             <body class='bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen'>
-                <form method='post' action='" . $_SERVER['PHP_SELF'] . "' class='bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-sm'>
+                <div class='bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-sm'>
                     <label for='API_KEY' class='block text-sm font-medium text-gray-300 mb-2'>Enter the API KEY:</label>
                     <input type='password' id='API_KEY' name='API_KEY' required class='block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-700 text-gray-100'>
-                    <button type='submit' id='sendkeybutton' class='mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>Log in</button>
-                </form>
+                    <button type='submit' id='sendkeybutton' onclick='saveKey()' class='mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>Log in</button>
+                </div>
             </body>
         </html>
         ";
@@ -334,7 +318,10 @@ function draw_pie_operation($id1, $id2, $id3, $json_id, $description, $descripti
                                 color: 'white'
                             }
                         }
-                    }
+                    },
+                    animation: {
+                        duration: 0,
+                    },
                 }
             });
         }
@@ -570,6 +557,9 @@ function operations_region($opName, $jsonId, $title)
                     }]
                 },
                 options: {
+                    animation: {
+                        duration: 0,
+                    },
                     responsive: true,
                     ...options,
                     plugins: {
@@ -589,10 +579,9 @@ function operations_region($opName, $jsonId, $title)
             // Check if X is already in localStorage
             if (localStorage.getItem('API_KEY')) {
                 localStorage.clear();
-                location.href = location.href;
-            } else {
-                location.href = location.href + "?ask_api_key=true"
             }
+            location.href = location.href + "?ask_api_key=true"
+            
         }
     </script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css" rel="stylesheet">
@@ -843,7 +832,10 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
                             color: 'white'
                         }
                     }
-                }
+                },
+                animation: {
+                    duration: 0,
+                },
             }
         });
 
@@ -1104,11 +1096,23 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
         });
 
 
+        let pageReference = {
+            1: { name: "Object1", value: 10 },
+            2: { name: "Object2", value: 20 },
+            3: { name: "Object3", value: 30 }
+        };
+
         function selectReport() {
-            const pgsbar = showProgressBar();
             const selectedReport = document.getElementById('reportSelect').value;
+            
+            if (pageReference.hasOwnProperty(selectedReport)) {
+                loadData(pageReference[selectedReport])
+                return;
+            }
+            
+            const pgsbar = showProgressBar();
             // alert('Selected report: ' + selectedReport);
-            fetch(HOST + `https://www.marticliment.com/unigetui/statistics/report/get-${selectedReport == 0? "current" : "public"}`, {
+            fetch(HOST + `/unigetui/statistics/report/get-${selectedReport == 0? "current" : "public"}`, {
                 headers: {
                     'apiKey': localStorage.getItem('API_KEY'),
                     'reportId': selectedReport
@@ -1118,6 +1122,7 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
             .then(data => 
             {
                 hideProgressBar(pgsbar);
+                if(selectReport != 0) pageReference[selectedReport] = data;
                 loadData(data)
             })
             .catch(err => 
