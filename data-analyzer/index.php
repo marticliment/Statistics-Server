@@ -309,7 +309,9 @@ function draw_pie_operation($id1, $id2, $id3, $json_id, $description, $descripti
                         },
                         y: {
                             stacked: true,
-                            ticks: { color: 'white' }
+                            ticks: { color: 'white' },
+                            max: 100,
+                            min: 0,
                         }
                     },
                     plugins: {
