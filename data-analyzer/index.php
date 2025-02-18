@@ -1063,8 +1063,11 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
 
     <script>
 
+        const HOST = "";
+        // const HOST = "https://www.marticliment.com"
+
         const pgsbar = showProgressBar();
-        fetch('https://www.marticliment.com/unigetui/statistics/report/list-public', {
+        fetch(HOST + '/unigetui/statistics/report/list-public', {
             headers: {
                 'apiKey': localStorage.getItem('API_KEY')
             }
@@ -1105,7 +1108,7 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
             const pgsbar = showProgressBar();
             const selectedReport = document.getElementById('reportSelect').value;
             // alert('Selected report: ' + selectedReport);
-            fetch(`https://www.marticliment.com/unigetui/statistics/report/get-${selectedReport == 0? "current" : "public"}`, {
+            fetch(HOST + `https://www.marticliment.com/unigetui/statistics/report/get-${selectedReport == 0? "current" : "public"}`, {
                 headers: {
                     'apiKey': localStorage.getItem('API_KEY'),
                     'reportId': selectedReport
