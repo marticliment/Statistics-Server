@@ -47,9 +47,9 @@ function do_login_and_get_response()
         ";
         die();
     }
-    else if (isset($_GET["post_apikey"]))
+    /*else if (isset($_GET["post_apikey"]))
     {
-        echo /*html*/"
+        echo html"
         <html>
         <body>
         <form id='form' style='visibility: hidden'></form>
@@ -82,9 +82,9 @@ function do_login_and_get_response()
     else 
     {
         $apiKey = $_POST['apikey'];
-    }
+    }*/
 
-    $url = "http://marticliment.com/unigetui/statistics/report";
+   /* $url = "http://marticliment.com/unigetui/statistics/report/get-current";
     // $url = "http://localhost:3000/report";
 
     $options = [
@@ -93,15 +93,17 @@ function do_login_and_get_response()
         ]
     ];
 
-    error_reporting(0);
-    $context = stream_context_create($options);
-    $response = file_get_contents($url, false, $context);
+    $debug = false;
+    if($debug) echo "<br><br>";
+    else error_reporting(0);
+    // $context = stream_context_create($options);
+    // $response = file_get_contents($url, false, $context);
     // $response = "false";
     $error = "";
     if ($response === FALSE) {
         return "false";
     }
-    return $response;
+    return $response;*/
 }
 
 
@@ -208,6 +210,9 @@ function ranking($title, $id, $jsonId)
     function generate$randomId(jsonData)
     {
         let rankDiv = document.getElementById('$id');
+        while (rankDiv.firstChild) {
+            rankDiv.removeChild(rankDiv.firstChild);
+        }
         jsonData.$jsonId.forEach(item => {
             const li = document.createElement('li');
             li.textContent = `\${item[0]} - \${item[1]}: \${item[2]} (\${item[3]} hits)`;
@@ -637,10 +642,6 @@ function operations_region($opName, $jsonId, $title)
             });
         }
 
-        function reloadLiveButton()
-        {
-            location.href = location.href;
-        }
 
         function clearApiKey()
         {
@@ -662,26 +663,42 @@ function operations_region($opName, $jsonId, $title)
 
 <div style="width: 100%; height: auto; position: fixed; top: 0px; left: 0px; display: flex; flex-direction: row; justify-content: space-between; z-index: 10;"
     class="bg-blue-900">
-    <div style="padding: 0px">
-        <button onclick="reloadLiveButton()" id="ReloadLiveButton"
-            class="text-white font-semibold py-2 px-4 transition duration-100 mx-0">Reload live</button>
+    <div style="padding: 0px" class="mx-2">
+        <!--h2 class="text-2xl font-semibold mb-4 text-center">Report: </h2-->
+        <select id="reportSelect" 
+            class="bg-gray-800 text-white font-semibold py-1 px-4 my-1 transition duration-100 mx-0"></select>
+            
+        <button onclick="selectReport()" id="ReportSelectButton"
+            class="bg-gray-800 text-white font-semibold py-1 px-4 my-1 transition duration-100 mx-0">Load</button>
+    </div>
+    <div>  
         <button onclick="document.getElementById('fileInput').click()"
             class="bg-blue-900 hover:bg-blue-700 text-white font-semibold py-2 px-4 transition duration-100 mx-0">From JSON</button>
         <button onclick="exportToJson()"
             class="bg-blue-900 hover:bg-blue-700 text-white font-semibold py-2 px-4 transition duration-100 mx-0">Export to JSON</button>
-    </div>
-    <div>
+        <button onclick="selectPublicReport()"
+            class="bg-blue-900 hover:bg-blue-700 text-white font-semibold py-2 px-4 transition duration-100 mx-0">Select from archive</button>
+    
         <button onclick="clearApiKey()" id="ApiKeyButton"
             class="bg-blue-900 text-white font-semibold py-2 px-4 mx-0 transition duration-100">N/A</button>
     </div>
 </div>
 <br>
 <div class="chart-container bg-gray-800 shadow-md rounded-lg p-6 mb-8">
-    <div class="text-center">
-        <span class="text-2xl font-semibold mb-4 text-center">Active user count: </span>
-        <span id="activeUserCount" class="text-6xl text-green-400 font-bold text-center"></span>
-        <span class="text-1xl font-semibold mb-4 text-center">Average last connection time (in days): </span>
-        <span id="userCountLastPingAvg" class="text-3xl text-blue-400 font-bold text-center"></span>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+        <div>
+            <span class="text-1xl font-semibold mb-4 text-center">Report date: &nbsp;</span>
+            <span id="reportDate" class="text-1xl text-blue-300 font-bold text-center"></span>
+        </div>
+        <div>
+            <span class="text-2xl font-semibold mb-4 text-center">&emsp;Analyzed users: &nbsp;</span>
+            <span id="activeUserCount" class="text-6xl text-green-400 font-bold text-center"></span>
+            <span>&emsp;</span>
+        </div>
+        <div>
+            <span class="text-1xl font-semibold mb-4 text-center">Last connected (AVG): &nbsp;</span>
+            <span id="userCountLastPingAvg" class="text-1xl text-blue-300 font-bold text-center"></span>
+        </div>
     </div>
 </div>
 </div>
@@ -747,8 +764,12 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
         let userCount = document.getElementById("activeUserCount");
         userCount.innerHTML = jsonData.active_users;
 
+        let reportTime = document.getElementById("reportDate");
+        const date = new Date(jsonData.timestamp_utc_seconds * 1000);
+        reportTime.innerHTML = date.toLocaleString();
+
         let connectAvg = document.getElementById("userCountLastPingAvg");
-        connectAvg.innerHTML = (jsonData.avg_last_ping_timeDelta / (3600 * 24)).toFixed(2);
+        connectAvg.innerHTML = (jsonData.avg_last_ping_timeDelta / (3600 * 24)).toFixed(2) + " days";
 
         const sortedLanguages = Object.entries(jsonData.active_languages).sort((a, b) => b[1] - a[1]);
         const languageLabels = sortedLanguages.map(([id]) => languageMap[id] || id);
@@ -990,34 +1011,40 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
     function loadData(jsonData) {
         generateCustom(jsonData);
         <?php
-        for ($i = 0; $i < sizeof($generators); $i++) {
-            echo $generators[$i] . "(jsonData);";
-        }
+            for ($i = 0; $i < sizeof($generators); $i++) {
+                echo $generators[$i] . "(jsonData);";
+            }
         ?>
     }
 
-
-    let jsonData = <?php echo $response; ?>;
-    let reload = document.getElementById("ReloadLiveButton")
+    let reloadButton = document.getElementById("ReportSelectButton")
+    let reloadCombo = document.getElementById("reportSelect")
     let login = document.getElementById("ApiKeyButton")
     
     if(localStorage.getItem('API_KEY'))
     {
-        loadData(jsonData)
-        reload.style.visibility = "visible";
+        // loadData(jsonData)
+        reloadButton.style.visibility = "visible";
+        reloadCombo.style.visibility = "visible";
         login.innerText = "Close API Key session";
         login.classList.add("hover:bg-red-700");
-        reload.classList.add("hover:bg-blue-700");
-        reload.classList.add("bg-blue-900");
+        reloadButton.classList.add("hover:bg-gray-700");
+        reloadButton.classList.add("bg-gray-800");
+        reloadCombo.classList.add("hover:bg-gray-700");
+        reloadCombo.classList.add("bg-gray-800");
     } 
     else 
     {
-        reload.disabled = true;
-        reload.style.cursor = "not-allowed";
+        reloadButton.disabled = true;
+        reloadButton.style.cursor = "not-allowed";
+        reloadCombo.disabled = true;
+        reloadCombo.style.cursor = "not-allowed";
         login.innerText = "Login with API Key";
         login.classList.add("hover:bg-green-700");
-        reload.classList.add("bg-grey-900");
-        reload.style.opacity = 0.5;
+        reloadButton.classList.add("bg-grey-900");
+        reloadButton.style.opacity = 0.5;
+        reloadCombo.classList.add("bg-grey-900");
+        reloadCombo.style.opacity = 0.5;
     }
 
     function loadLocalFile(event) {
@@ -1037,7 +1064,8 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
         }
     }
 
-    function exportToJson() {
+    function exportToJson()
+    {
         const dataStr = JSON.stringify(jsonData, null, 2);
         const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
 
@@ -1048,8 +1076,67 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
         linkElement.setAttribute('download', exportFileDefaultName);
         linkElement.click();
     }
+    </script>
 
-</script>
+            <!--h2 class="text-2xl font-semibold mb-4 text-center">Report: </h2>
+            <select id="reportSelect" class="bg-gray-700 text-white font-semibold py-2 px-4 mb-4 w-full">
+            <button onclick="selectReport()" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 ml-2">Select</button-->
+
+    <script>
+
+        fetch('https://www.marticliment.com/unigetui/statistics/report/list-public', {
+            headers: {
+                'apiKey': localStorage.getItem('API_KEY')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const reportSelect = document.getElementById('reportSelect');
+            reportSelect.innerHTML = ''; // Clear existing options
+            
+            let option = document.createElement('option');
+            option.value = 0;
+            option.textContent = "Live";
+            reportSelect.appendChild(option);
+            
+            option = document.createElement('option');
+            option.value = -1;
+            option.textContent = "Latest (non-live)";
+            reportSelect.appendChild(option);
+
+            data.sort((a, b) => b - a);
+            data.forEach(report => {
+                option = document.createElement('option');
+                option.value = report;
+                const date = new Date(report * 1000);
+                option.textContent = date.toLocaleString();
+                reportSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error fetching reports:', error));
+
+
+        function selectReport() {
+            const selectedReport = document.getElementById('reportSelect').value;
+            // alert('Selected report: ' + selectedReport);
+            fetch(`https://www.marticliment.com/unigetui/statistics/report/get-${selectedReport == 0? "current" : "public"}`, {
+                headers: {
+                    'apiKey': localStorage.getItem('API_KEY'),
+                    'reportId': selectedReport
+                }
+            })
+            .then(response => response.json())
+            .then(data => 
+            {
+                loadData(data)
+            })
+            .catch(err => alert("Failed to load report (status code " + err.status + "): " + err.message))
+        }
+
+        selectReport();
+
+
+    </script>
 </body>
 
 </html>
