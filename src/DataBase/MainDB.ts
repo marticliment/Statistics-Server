@@ -131,6 +131,16 @@ export class MainDB {
         }
     } 
 
+    static GenerateRankings(rank_size: number): object
+    {
+        return {
+            timestamp_utc_seconds: Math.floor(new Date().getTime() / 1000),
+            popular: this.PopularRanking.GetProgramRanking(rank_size),
+            installed: this.InstallsRanking.GetProgramRanking(rank_size),
+            uninstalled: this.UninstalledRanking.GetProgramRanking(rank_size),
+        }
+    } 
+
     static SaveResultsIfFlagSet()
     {
         try {
@@ -140,6 +150,26 @@ export class MainDB {
                 fs.unlinkSync(flagPath);
                 let contents: string = JSON.stringify(this.GenerateReport(15));
                 const fileName = `${Math.floor(new Date().getTime() / 1000)}.json`;
+                const filePath = `${Settings.RESULTS_FOLDER}/${fileName}`;
+                // console.log(`Saving file ${filePath}`);
+                fs.writeFileSync(filePath, contents);
+            }
+        } 
+        catch (e)
+        {
+            console.error(`Failed to save results file due to ${e}`);
+        }
+    }
+
+    static SaveRankingsIfFlagSet()
+    {
+        try {
+            const flagPath = `${Settings.FLAGS_FOLDER}/${Settings.SAVE_RANKINGS_FLAG}`;
+            if(fs.existsSync(flagPath))
+            {            
+                fs.unlinkSync(flagPath);
+                let contents: string = JSON.stringify(this.GenerateRankings(50));
+                const fileName = `LiveRanking.json`;
                 const filePath = `${Settings.RESULTS_FOLDER}/${fileName}`;
                 // console.log(`Saving file ${filePath}`);
                 fs.writeFileSync(filePath, contents);

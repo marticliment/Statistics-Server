@@ -33,6 +33,7 @@ export class Settings
     
     static FLAGS_FOLDER = "./flags"
     static SAVE_RESULTS_FLAG = "SaveResultsToDisk";
+    static SAVE_RANKINGS_FLAG = "SaveRankingsToDisk";
 
     static REDIRECT_URL_WHEN_INVALID_ENDPOINT = "https://www.marticliment.com/unigetui"
 

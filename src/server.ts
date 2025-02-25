@@ -141,6 +141,7 @@ setInterval(() => MainDB.SaveToDisk(), Settings.SAVE_ON_DISK_INTERVAL * 1000);
 setInterval(() => MainDB.ClearRankingAdditionCache(), Settings.INSTALL_PROGRAMS_CACHE_CLEAN_INTERVAL * 1000);
 setInterval(() => MainDB.PurgeUsers(), Settings.INACTIVE_USER_PURGE_INTERVAL * 1000);
 setInterval(() => MainDB.SaveResultsIfFlagSet(), 10 * 1000);
+setInterval(() => MainDB.SaveRankingsIfFlagSet(), 10 * 1000);
 
 setInterval(() => BannedUsers.ResetActivityCount(), 1000);
 setInterval(() => BannedUsers.PardonBanned(), Settings.USER_BAN_PARDON_TIMEOUT * 1000);
