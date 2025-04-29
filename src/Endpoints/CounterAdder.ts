@@ -2,17 +2,65 @@ import http from 'http';
 import { MainDB } from '../DataBase/MainDB.ts';
 import { Utils } from '../Utils.ts';
 import { version } from 'os';
-import { Ranking_DB } from '../DataBase/Ranking_DB.ts';
-import { Counter_DB } from '../DataBase/Counter_DB.ts';
 
 
 export class CounterAdder
 {
-    static AddBundle(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>, counter: Counter_DB)
+    static SharedPackage(
+        req: http.IncomingMessage, 
+        res: http.ServerResponse<http.IncomingMessage>)
     {
         try 
         {
-            const user_id = Utils.ProcessUserId(Utils.GetHeader(req, "clientId"));
+            const eventSource = Utils.GetHeader(req, "eventSource");
+                    
+            if(Utils.Invalid(eventSource))
+            {
+                res.statusCode = 406;
+            }
+            else
+            {
+                MainDB.IncrementCounter("sharedPackage", eventSource);
+            }
+        } 
+        catch (err)
+        {
+            res.statusCode = 500;
+            console.error(err);
+        }
+    }
+
+    static PackageDetails(
+        req: http.IncomingMessage, 
+        res: http.ServerResponse<http.IncomingMessage>)
+    {
+        try 
+        {
+            const eventSource = Utils.GetHeader(req, "eventSource");
+                    
+            if(Utils.Invalid(eventSource))
+            {
+                res.statusCode = 406;
+            }
+            else
+            {
+                MainDB.IncrementCounter("packageDetails", eventSource);
+            }
+        } 
+        catch (err)
+        {
+            res.statusCode = 500;
+            console.error(err);
+        }
+    }
+
+
+    static ExportBundle(
+        req: http.IncomingMessage, 
+        res: http.ServerResponse<http.IncomingMessage>)
+    {
+        try 
+        {
             const bundleType = Utils.GetHeader(req, "bundleType");
                     
             if(Utils.Invalid(bundleType))
@@ -21,7 +69,31 @@ export class CounterAdder
             }
             else
             {
-                counter.Increment_1dim(bundleType, user_id);
+                MainDB.IncrementCounter("exportBundle", bundleType);
+            }
+        } 
+        catch (err)
+        {
+            res.statusCode = 500;
+            console.error(err);
+        }
+    }
+    
+    static ImportBundle(
+        req: http.IncomingMessage, 
+        res: http.ServerResponse<http.IncomingMessage>)
+    {
+        try 
+        {
+            const bundleType = Utils.GetHeader(req, "bundleType");
+                    
+            if(Utils.Invalid(bundleType))
+            {
+                res.statusCode = 406;
+            }
+            else
+            {
+                MainDB.IncrementCounter("importBundle", bundleType);
             }
         } 
         catch (err)

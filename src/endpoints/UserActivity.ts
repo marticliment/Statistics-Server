@@ -23,7 +23,7 @@ export class UserActivity
             }
             else
             {
-                MainDB.UpdateUser(id, new Date(), version, activeManagers, activeSettings, language);
+                MainDB.UpdateUser(id, version, activeManagers, activeSettings, language);
                 res.statusCode = 200;
             }
         } 

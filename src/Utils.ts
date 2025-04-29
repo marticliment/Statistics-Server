@@ -3,6 +3,20 @@ import crypto from 'crypto';
 import * as http from 'http';
 import { Settings } from './Settings.ts';
 
+export class OperationType 
+{
+    static INSTALL: number = 0;
+    static DOWNLOAD: number = 1;
+    static UPDATE: number = 2;
+    static UNINSTALL: number = 3;
+}
+
+export class OperationResult 
+{
+    static SUCCEEDED: number = 0;
+    static FAILED: number = 1;
+}
+
 
 export class Utils
 {
@@ -78,6 +92,5 @@ export class Utils
             }
         }
     }
-
 }
 

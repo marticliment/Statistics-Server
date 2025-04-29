@@ -2,63 +2,68 @@ import * as fs from 'fs';
 import sqlite3 from 'sqlite3';
 const { Database } = sqlite3;
 
-import { Utils } from '../Utils.ts';
+import { OperationResult, OperationType, Utils } from '../Utils.ts';
 import { Settings } from '../Settings.ts';
-import { ValuePerUser_DB } from './ValuePerUser_DB.ts';
-import { Ranking_DB } from './Ranking_DB.ts';
-import { Counter_DB } from './Counter_DB.ts';
 
 
 export class MainDB {
 
     static DB = new Database(`${Settings.DATA_FOLDER}/database.db`);
 
-    // ------------------------------------------------
-
-    /*static ActiveUsers = new ValuePerUser_DB<number>("ActiveUsers");
-    static ActiveVersions = new ValuePerUser_DB<string>("ActiveVersions");
-    static ActiveManagers = new ValuePerUser_DB<number>("ActiveManagers");
-    static ActiveSettings = new ValuePerUser_DB<number>("ActiveSettings");
-    static ActiveLanguages = new ValuePerUser_DB<string>("ActiveLanguages");*/
-    
-    // ------------------------------------------------
-
-    static PopularRanking = new Ranking_DB("PopularRanking", true);
-    static InstallsRanking = new Ranking_DB("InstalledRanking", true);
-    static UninstalledRanking = new Ranking_DB("UninstallsRanking", true);
-
-    // ------------------------------------------------
-
-    static ImportedBundles = new Counter_DB("ImportedBundles", 1)
-    static ExportedBundles = new Counter_DB("ExportedBundles", 1)
-    
-    static InstallCount = new Counter_DB("InstallOperations", 2)
-    static InstallReason = new Counter_DB("PkgInstallReasons", 1)
-    static DownloadCount = new Counter_DB("DownloadOperations", 2)
-    static UpdateCount = new Counter_DB("UpdateOperations", 2)
-    static UninstallCount = new Counter_DB("UninstallOperations", 2)
-
-    static ShownPackageDetails = new Counter_DB("ShownPackageDetails", 1)
-    static SharedPackages = new Counter_DB("SharedPackages", 1)
-
-    // ------------------------------------------------
-
-    //private static DB_PerUser = [this.ActiveUsers, this.ActiveVersions, this.ActiveManagers, this.ActiveSettings, this.ActiveLanguages];
-    private static DB_Rankings = [this.InstallsRanking, this.UninstalledRanking, this.PopularRanking];
-    private static DB_Counters = [this.ImportedBundles, this.ExportedBundles, this.InstallCount, this.InstallReason, 
-        this.DownloadCount, this.UpdateCount, this.UninstallCount, this.ShownPackageDetails, this.SharedPackages];
-
-
-
-    static UpdateUser(identifier: string, date: Date, version: string, activeManagers: number, activeSettings: number, language: string) 
-    {        
+    static UpdateUser(
+        identifier: string, 
+        version: string, 
+        activeManagers: number, 
+        activeSettings: number, 
+        language: string) 
+    {
         let intIdentifier = Utils.IntegerizeIdentifier(identifier);
         Utils.TestSQLSafety(version);
         Utils.TestSQLSafety(language);
 
         this.DB.exec(
             `INSERT OR REPLACE INTO Users (Identifier, LastConnection, ClientVersion, ActiveSettings, ActiveManagers, Language) 
-             VALUES (${intIdentifier}, ${date.getTime()}, '${version}', '${activeSettings}', '${activeManagers}', '${language}');`
+             VALUES (${intIdentifier}, ${Date.now()}, '${version}', '${activeSettings}', '${activeManagers}', '${language}');`
+        );
+    }
+
+    static AddOperation(
+        clientVersion: string,
+        packageId: string,
+        packageSource: string,
+        packageManager: string,
+        operationType: number,
+        operationResult: number,
+        operationReferral: string,
+    )
+    {
+        Utils.TestSQLSafety(packageId);
+        Utils.TestSQLSafety(packageSource);
+        Utils.TestSQLSafety(packageManager);
+        Utils.TestSQLSafety(clientVersion);
+        Utils.TestSQLSafety(operationReferral);
+
+        this.DB.exec(
+            `INSERT INTO Operations (PackageId, PackageSource, PackageManager, OperationType, 
+                OperationResult, ClientVersion, OperationReferral, EventCount) 
+             VALUES ('${packageId}', '${packageSource}', '${packageManager}', ${operationType}, 
+                '${operationResult}', '${clientVersion}', '${operationReferral}', 1)
+             ON CONFLICT(PackageId, PackageSource, PackageManager, OperationType, 
+                OperationResult, ClientVersion, OperationReferral) 
+             DO UPDATE SET EventCount = EventCount + 1;`
+        );
+    }
+
+    static IncrementCounter(key: string, subkey: string)
+    {
+        Utils.TestSQLSafety(key);
+        Utils.TestSQLSafety(subkey);
+
+        this.DB.exec(
+            `INSERT INTO RawCounters (Key, SubKey, Value) 
+             VALUES ('${key}', '${subkey}', 1) 
+             ON CONFLICT(Key, SubKey) 
+             DO UPDATE SET Value = Value + 1;`
         );
     }
 
@@ -74,39 +79,7 @@ export class MainDB {
 
     static ClearRankingAdditionCache(): void
     {
-        this.DB_Rankings.forEach((db) => db.ClearRecentAdditionsList());
-    }
-
-    static LoadFromDisk() 
-    {
-        try 
-        {
-            // this.DB_PerUser.forEach((db) => db.LoadFromDisk())
-            this.DB_Rankings.forEach((db) => db.LoadFromDisk())
-            this.DB_Counters.forEach((db) => db.LoadFromDisk())
-        } 
-        catch (err) 
-        {
-            console.error(`Could not load data from disk due to ${err}`);
-        }
-    }
-
-    static SaveToDisk() 
-    {
-        if(!Utils.UNSAVED_CHANGES) return;
-
-        try 
-        {
-            if(Settings.IS_DEBUG) console.log("Saving server state to disk...")
-            // this.DB_PerUser.forEach((db) => db.SaveToDisk())
-            this.DB_Rankings.forEach((db) => db.SaveToDisk())
-            this.DB_Counters.forEach((db) => db.SaveToDisk())
-            Utils.UNSAVED_CHANGES = false;
-        } 
-        catch (err)
-        {
-            console.error(`Could not save data to disk due to ${err}`);
-        }
+        //this.DB_Rankings.forEach((db) => db.ClearRecentAdditionsList());
     }
 
     static GenerateReport(rank_size: number): object
@@ -146,9 +119,9 @@ export class MainDB {
     {
         return {
             timestamp_utc_seconds: Math.floor(new Date().getTime() / 1000),
-            popular: this.PopularRanking.GetProgramRanking(rank_size),
-            installed: this.InstallsRanking.GetProgramRanking(rank_size),
-            uninstalled: this.UninstalledRanking.GetProgramRanking(rank_size),
+            //popular: this.PopularRanking.GetProgramRanking(rank_size),
+            //installed: this.InstallsRanking.GetProgramRanking(rank_size),
+            //uninstalled: this.UninstalledRanking.GetProgramRanking(rank_size),
         }
     } 
 
