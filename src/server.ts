@@ -13,11 +13,12 @@ import { OperationType } from './Utils.ts';
 
 const server = http.createServer((req, res) => {
     try {
-        /*if (BannedUsers.IsBanned(req)) {
+        if (BannedUsers.IsBanned(req)) {
             res.statusCode = 429; // Too Many Requests
             res.end();
             return;
-        }*/
+        }
+        
 
         // TODO: Prevent API abuse
         res.setHeader('Content-Type', 'text/json');
