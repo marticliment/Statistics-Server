@@ -1,6 +1,5 @@
-import * as fs from 'fs';
-import sqlite3 from 'sqlite3';
-const { Database } = sqlite3;
+import * as fs from 'node:fs';
+import { Database } from "bun:sqlite";
 
 import { OperationResult, OperationType, Utils } from '../Utils.ts';
 import { Settings } from '../Settings.ts';

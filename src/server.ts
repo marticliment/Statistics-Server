@@ -1,12 +1,11 @@
-import http from 'http';
+import http from 'node:http';
 import { Health } from './Endpoints/Health.ts';
 import { UserActivity } from './Endpoints/UserActivity.ts';
 import { MainDB } from './DataBase/MainDB.ts'
-import fs from 'fs';
+import fs from 'node:fs';
 import { Settings } from './Settings.ts';
 import { BannedUsers } from './Banner.ts';
 import { PackageOPs } from './Endpoints/ProgramRanking.ts';
-import { getMaxListeners } from 'events';
 import { CounterAdder } from './Endpoints/CounterAdder.ts';
 import { PublicResults as StatisticsResults } from './Endpoints/AnalyticsResults.ts';
 import { OperationType } from './Utils.ts';

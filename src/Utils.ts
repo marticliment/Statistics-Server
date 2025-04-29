@@ -1,6 +1,6 @@
 
-import crypto from 'crypto';
-import * as http from 'http';
+import crypto from 'node:crypto';
+import * as http from 'node:http';
 import { Settings } from './Settings.ts';
 
 export class OperationType 
@@ -55,10 +55,11 @@ export class Utils
 
     static MapToObject<key_t, value_t>(m: Map<key_t, value_t>)
     {
-        return Array.from(m).reduce((obj, [key, value]) => {
+        /*return Array.from(m).reduce((obj, [key, value]) => {
           obj[key as any] = value;
           return obj;
-        }, {});
+        }, {});*/
+        return {}
     };
 
     static Invalid(param: string | number): boolean
