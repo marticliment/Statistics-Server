@@ -8,11 +8,6 @@ export class Utils
 {
     static UNSAVED_CHANGES = false;
 
-    static ProcessUserId(raw_id: string): string {
-        if(raw_id == "") return raw_id;
-        return crypto.createHash('md5').update(raw_id).digest('base64url')
-    }
-
     static GetProgramUniqueId(id: string, manager: string, source: string): string
     {
         return `${id.replace(":", "¬#")}:${manager.replace(":", "¬#")}:${source.replace(":", "¬#")}`;
@@ -58,6 +53,30 @@ export class Utils
             return isNaN(param);
         else
             return param.length <= 0 || param.length > 75 
+    }
+
+    static IntegerizeIdentifier(id: string): number
+    {
+        const hash = crypto.createHash('md5').update(id).digest();
+        return hash.readInt32BE(0);
+    }
+
+    static TestSQLSafety(value: string)
+    {
+        const unsafePatterns = [
+            /--/, // SQL comment
+            /;/,  // Statement terminator
+            /'/,  // Single quote
+            /"/,  // Double quote
+            /\b(OR|AND)\b/i, // Logical operators
+            /\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b/i // SQL keywords
+        ];
+
+        for (const pattern of unsafePatterns) {
+            if (pattern.test(value)) {
+            throw new Error("SQL Injection attempt detected");
+            }
+        }
     }
 
 }

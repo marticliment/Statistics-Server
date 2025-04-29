@@ -1,18 +1,25 @@
 import * as fs from 'fs';
+import sqlite3 from 'sqlite3';
+const { Database } = sqlite3;
+
 import { Utils } from '../Utils.ts';
 import { Settings } from '../Settings.ts';
 import { ValuePerUser_DB } from './ValuePerUser_DB.ts';
 import { Ranking_DB } from './Ranking_DB.ts';
 import { Counter_DB } from './Counter_DB.ts';
 
+
 export class MainDB {
+
+    static DB = new Database(`${Settings.DATA_FOLDER}/database.db`);
+
     // ------------------------------------------------
 
-    static ActiveUsers = new ValuePerUser_DB<number>("ActiveUsers");
+    /*static ActiveUsers = new ValuePerUser_DB<number>("ActiveUsers");
     static ActiveVersions = new ValuePerUser_DB<string>("ActiveVersions");
     static ActiveManagers = new ValuePerUser_DB<number>("ActiveManagers");
     static ActiveSettings = new ValuePerUser_DB<number>("ActiveSettings");
-    static ActiveLanguages = new ValuePerUser_DB<string>("ActiveLanguages");
+    static ActiveLanguages = new ValuePerUser_DB<string>("ActiveLanguages");*/
     
     // ------------------------------------------------
 
@@ -36,7 +43,7 @@ export class MainDB {
 
     // ------------------------------------------------
 
-    private static DB_PerUser = [this.ActiveUsers, this.ActiveVersions, this.ActiveManagers, this.ActiveSettings, this.ActiveLanguages];
+    //private static DB_PerUser = [this.ActiveUsers, this.ActiveVersions, this.ActiveManagers, this.ActiveSettings, this.ActiveLanguages];
     private static DB_Rankings = [this.InstallsRanking, this.UninstalledRanking, this.PopularRanking];
     private static DB_Counters = [this.ImportedBundles, this.ExportedBundles, this.InstallCount, this.InstallReason, 
         this.DownloadCount, this.UpdateCount, this.UninstallCount, this.ShownPackageDetails, this.SharedPackages];
@@ -45,21 +52,24 @@ export class MainDB {
 
     static UpdateUser(identifier: string, date: Date, version: string, activeManagers: number, activeSettings: number, language: string) 
     {        
-        this.ActiveUsers.Set(identifier, date.getTime());
-        this.ActiveVersions.Set(identifier, version);
-        this.ActiveManagers.Set(identifier, activeManagers);
-        this.ActiveSettings.Set(identifier, activeSettings);
-        this.ActiveLanguages.Set(identifier, language);
+        let intIdentifier = Utils.IntegerizeIdentifier(identifier);
+        Utils.TestSQLSafety(version);
+        Utils.TestSQLSafety(language);
+
+        this.DB.exec(
+            `INSERT OR REPLACE INTO Users (Identifier, LastConnection, ClientVersion, ActiveSettings, ActiveManagers, Language) 
+             VALUES (${intIdentifier}, ${date.getTime()}, '${version}', '${activeSettings}', '${activeManagers}', '${language}');`
+        );
     }
 
     static PurgeUsers() {
-        const tenDaysAgo = (new Date()).getTime() - (Settings.USER_ACTIVITY_PERIOD * 1000);
+        /*const tenDaysAgo = (new Date()).getTime() - (Settings.USER_ACTIVITY_PERIOD * 1000);
         this.ActiveUsers.Data.forEach((date, identifier) => {
             if (date < tenDaysAgo) {
                 console.info(`Deleting identifier ${identifier} from DB due to inactivity`);
                 this.DB_PerUser.forEach((setting) => setting.Delete(identifier));
             }
-        });
+        });*/
     }
 
     static ClearRankingAdditionCache(): void
@@ -71,7 +81,7 @@ export class MainDB {
     {
         try 
         {
-            this.DB_PerUser.forEach((db) => db.LoadFromDisk())
+            // this.DB_PerUser.forEach((db) => db.LoadFromDisk())
             this.DB_Rankings.forEach((db) => db.LoadFromDisk())
             this.DB_Counters.forEach((db) => db.LoadFromDisk())
         } 
@@ -88,7 +98,7 @@ export class MainDB {
         try 
         {
             if(Settings.IS_DEBUG) console.log("Saving server state to disk...")
-            this.DB_PerUser.forEach((db) => db.SaveToDisk())
+            // this.DB_PerUser.forEach((db) => db.SaveToDisk())
             this.DB_Rankings.forEach((db) => db.SaveToDisk())
             this.DB_Counters.forEach((db) => db.SaveToDisk())
             Utils.UNSAVED_CHANGES = false;
@@ -101,8 +111,9 @@ export class MainDB {
 
     static GenerateReport(rank_size: number): object
     {
+        return {};
         // MainDB.PurgeUsers();
-        let avgTime = MainDB.ActiveUsers.GetReport_Average();
+        /*let avgTime = MainDB.ActiveUsers.GetReport_Average();
         if(avgTime != 0) avgTime = (new Date().getTime() - avgTime)/1000;
         else avgTime = -1;
 
@@ -128,7 +139,7 @@ export class MainDB {
             uninstall_count: this.UninstallCount.GetReport_ByShareMap(),
             shown_package_details: this.ShownPackageDetails.GetReport_ByShareMap(),
             shared_packages: this.SharedPackages.GetReport_ByShareMap(),
-        }
+        }*/
     } 
 
     static GenerateRankings(rank_size: number): object
