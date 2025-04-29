@@ -28,8 +28,6 @@ const server = http.createServer((req, res) => {
                 Health.Respond(req, res);
                 break;
 
-
-
             // Registers an user as active, and sets some values.
             case "/activity":
                 UserActivity.Update(req, res);
