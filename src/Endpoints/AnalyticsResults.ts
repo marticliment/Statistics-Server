@@ -95,7 +95,7 @@ export class PublicResults
         }
     }
 
-    static GenerateReport_CurrentInstant(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>)
+    static async GenerateReport_CurrentInstant(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>)
     {
         res.statusCode = 200;
 
@@ -113,6 +113,7 @@ export class PublicResults
         }
         
         
-        res.write(JSON.stringify(MainDB.GenerateReport(10)))
+        const report = await MainDB.GenerateReport(10);
+        res.write(JSON.stringify(report));
     }
 }

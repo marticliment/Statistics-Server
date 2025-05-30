@@ -79,7 +79,8 @@ const server = http.createServer((req, res) => {
 
             // Generates a report of the current server data
             case "/report/get-current":
-                StatisticsResults.GenerateReport_CurrentInstant(req, res);
+                StatisticsResults.GenerateReport_CurrentInstant(req, res).finally(() => res.end());
+                return;
                 break;
 
             default:
