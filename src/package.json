@@ -6,7 +6,7 @@
         "server": "bun Server.ts",
         "build": "bun build Server.ts --compile --minify --outfile out/server",
         "build-win64": "bun build Server.ts --compile --minify --outfile out/server --target bun-windows-x64-modern",
-        "build-linux64": "bun build Server.ts --compile --minify --outfile out/server --target bun-linux-x64-modern",
+        "build-linux64": "bun build Server.ts --compile --minify --outfile out/server --target bun-linux-x64",
         "apispec": "redoc-cli bundle -o index.html apispec.yaml",
         "tests": "python3 ./test.py"
     },
@@ -27,6 +27,7 @@
         ]
     },
     "dependencies": {
+        "sqlite3": "^5.1.7",
         "tsx": "^4.19.2"
     }
 }

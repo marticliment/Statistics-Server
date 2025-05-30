@@ -1,5 +1,5 @@
 
-import http from 'http';
+import http from 'node:http';
 import { MainDB } from '../DataBase/MainDB.ts';
 import { Utils } from '../Utils.ts';
 
@@ -10,7 +10,7 @@ export class UserActivity
     {
         try 
         {
-            const id = Utils.ProcessUserId(Utils.GetHeader(req, "clientId"));                    
+            const id = Utils.GetHeader(req, "clientId");                    
             const version = Utils.GetHeader(req, "clientVersion");
             const activeManagers = parseInt(Utils.GetHeader(req, "activeManagers"));
             const activeSettings = parseInt(Utils.GetHeader(req, "activeSettings"));
@@ -23,7 +23,7 @@ export class UserActivity
             }
             else
             {
-                MainDB.UpdateUser(id, new Date(), version, activeManagers, activeSettings, language);
+                MainDB.UpdateUser(id, version, activeManagers, activeSettings, language);
                 res.statusCode = 200;
             }
         } 

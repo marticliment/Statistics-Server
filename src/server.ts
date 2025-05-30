@@ -1,14 +1,14 @@
-import http from 'http';
+import http from 'node:http';
 import { Health } from './Endpoints/Health.ts';
 import { UserActivity } from './Endpoints/UserActivity.ts';
 import { MainDB } from './DataBase/MainDB.ts'
-import fs from 'fs';
+import fs from 'node:fs';
 import { Settings } from './Settings.ts';
 import { BannedUsers } from './Banner.ts';
 import { PackageOPs } from './Endpoints/ProgramRanking.ts';
-import { getMaxListeners } from 'events';
 import { CounterAdder } from './Endpoints/CounterAdder.ts';
 import { PublicResults as StatisticsResults } from './Endpoints/AnalyticsResults.ts';
+import { OperationType } from './Utils.ts';
 
 const server = http.createServer((req, res) => {
     try {
@@ -17,6 +17,7 @@ const server = http.createServer((req, res) => {
             res.end();
             return;
         }
+        
 
         // TODO: Prevent API abuse
         res.setHeader('Content-Type', 'text/json');
@@ -26,48 +27,41 @@ const server = http.createServer((req, res) => {
                 Health.Respond(req, res);
                 break;
 
-
-
             // Registers an user as active, and sets some values.
             case "/activity":
                 UserActivity.Update(req, res);
                 break;
 
-
             case "/package/install":
-                PackageOPs.ProcessPackage_OperationResult(req, res, [MainDB.InstallsRanking, MainDB.PopularRanking], MainDB.InstallCount);
-                PackageOPs.ProcessPackage_EventSource(req, res, [], MainDB.InstallReason);
+                PackageOPs.OperationResult(req, res, OperationType.INSTALL);
                 break;
 
             case "/package/download":
-                PackageOPs.ProcessPackage_OperationResult(req, res, [MainDB.PopularRanking], MainDB.DownloadCount);
-                PackageOPs.ProcessPackage_EventSource(req, res, [], MainDB.InstallReason);
+                PackageOPs.OperationResult(req, res, OperationType.DOWNLOAD);
                 break;
 
             case "/package/update":
-                PackageOPs.ProcessPackage_OperationResult(req, res, [MainDB.PopularRanking], MainDB.UpdateCount);
+                PackageOPs.OperationResult(req, res, OperationType.UPDATE);
                 break;
 
             case "/package/uninstall":
-                PackageOPs.ProcessPackage_OperationResult(req, res, [MainDB.UninstalledRanking], MainDB.UninstallCount);
+                PackageOPs.OperationResult(req, res, OperationType.UNINSTALL);
                 break;
 
             case "/package/details":
-                PackageOPs.ProcessPackage_EventSource(req, res, [MainDB.PopularRanking], MainDB.ShownPackageDetails);
+                CounterAdder.PackageDetails(req, res);
                 break;
 
             case "/package/share":
-                PackageOPs.ProcessPackage_EventSource(req, res, [MainDB.PopularRanking], MainDB.SharedPackages);
+                CounterAdder.SharedPackage(req, res);
                 break;
-
-
                 
             case "/bundles/export":
-                CounterAdder.AddBundle(req, res, MainDB.ExportedBundles);
+                CounterAdder.ExportBundle(req, res);
                 break;
 
             case "/bundles/import":
-                CounterAdder.AddBundle(req, res, MainDB.ImportedBundles);
+                CounterAdder.ImportBundle(req, res);
                 break;
 
 
@@ -85,7 +79,8 @@ const server = http.createServer((req, res) => {
 
             // Generates a report of the current server data
             case "/report/get-current":
-                StatisticsResults.GenerateReport_CurrentInstant(req, res);
+                StatisticsResults.GenerateReport_CurrentInstant(req, res).finally(() => res.end());
+                return;
                 break;
 
             default:
@@ -132,12 +127,9 @@ if (!fs.existsSync(Settings.RESULTS_FOLDER))
 if (!fs.existsSync(Settings.FLAGS_FOLDER))
     fs.mkdirSync(Settings.FLAGS_FOLDER);
 
-MainDB.LoadFromDisk();
-
 // Purge inactive users.
 MainDB.PurgeUsers();
 
-setInterval(() => MainDB.SaveToDisk(), Settings.SAVE_ON_DISK_INTERVAL * 1000);
 setInterval(() => MainDB.ClearRankingAdditionCache(), Settings.INSTALL_PROGRAMS_CACHE_CLEAN_INTERVAL * 1000);
 setInterval(() => MainDB.PurgeUsers(), Settings.INACTIVE_USER_PURGE_INTERVAL * 1000);
 setInterval(() => MainDB.SaveResultsIfFlagSet(), 10 * 1000);

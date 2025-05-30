@@ -169,7 +169,7 @@ function draw_pie_operation($id1, $id2, $id3, $json_id, $description, $descripti
                 'Cargo': 0,
                 'vcpkg': 0,
             };
-            let data_perResult = {SUCCESS: 0, FAILED: 0};
+            let data_perResult = {'SUCCEEDED': 0, 'FAILED': 0};
             let data_success = JSON.parse(JSON.stringify(data_perManager));
             let data_failure = JSON.parse(JSON.stringify(data_perManager));
             
@@ -188,7 +188,7 @@ function draw_pie_operation($id1, $id2, $id3, $json_id, $description, $descripti
                 const val = jsonData." . $json_id . "[key];
                 data_perManager[MANAGER] += val;
                 data_perResult[RESULT] += val;
-                if(RESULT == 'SUCCESS') data_success[MANAGER] += val;
+                if(RESULT == 'SUCCEEDED') data_success[MANAGER] += val;
                 else data_failure[MANAGER] += val;
             });
 
@@ -691,7 +691,7 @@ chart_div("operation_types", "Performed operations");
 chart_div("installDownload_referral", title: "INST+DWNLD package source");
 
 draw_pie("versionsChart", "active_versions", "Amount of clients running this version");
-draw_pie("installDownload_referral", "install_reason", "");
+// draw_pie("installDownload_referral", "install_reason", "");
 end_chart_zone();
 
 // ----------------------------------------------
@@ -755,7 +755,7 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
             "languagesChart",
             languageLabels,
             languageData,
-            "Percentage of Users",
+            "Amount of users",
             'pie',
             generateColors(languageLabels.length)
         );
@@ -1064,11 +1064,12 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
 
     <script>
 
-        const HOST = "";
-        // const HOST = "https://www.marticliment.com"
+        const HOST = "http://127.0.0.1:3000";
+        // const HOST = "/unigetui/statistics"
+        // const HOST = "https://www.marticliment.com/unigetui/statistics"
 
         const pgsbar = showProgressBar();
-        fetch(HOST + '/unigetui/statistics/report/list-public', {
+        fetch(HOST + '/report/list-public', {
             headers: {
                 'apiKey': localStorage.getItem('API_KEY')
             }
@@ -1119,7 +1120,7 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
             const pgsbar = showProgressBar();
             
             // alert('Selected report: ' + selectedReport);
-            fetch(HOST + `/unigetui/statistics/report/get-${selectedReport == 0? "current" : "public"}`, {
+            fetch(HOST + `/report/get-${selectedReport == 0? "current" : "public"}`, {
                 headers: {
                     'apiKey': localStorage.getItem('API_KEY'),
                     'reportId': selectedReport
@@ -1135,6 +1136,7 @@ ranking("Wall of shame (uninstalled ranking)", "wallOfShameRanking", "uninstalle
             .catch(err => 
             {
                 alert("Failed to load report (status code " + err.status + "): " + err.message);
+                console.error(err);
                 hideProgressBar(pgsbar);
             });
         }
