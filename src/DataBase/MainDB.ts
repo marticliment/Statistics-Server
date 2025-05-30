@@ -10,6 +10,98 @@ export class MainDB {
 
     static DB = new Database(`${Settings.DATA_FOLDER}/database.db`);
 
+    // --- Extracted helper methods ---
+
+    static getSingleValue(sql: string, params: any[] = []): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.DB.get(sql, params, (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+    }
+
+    static getAllRows(sql: string, params: any[] = []): Promise<any[]> {
+        return new Promise((resolve, reject) => {
+            this.DB.all(sql, params, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+    }
+
+    static async getRanking(operationType: number, limit: number): Promise<[string, string, string, number][]> {
+        const rows = await this.getAllRows(
+            `SELECT PackageId, PackageSource, PackageManager, SUM(EventCount) as count 
+             FROM Operations 
+             WHERE OperationType = ? 
+             GROUP BY PackageId, PackageSource, PackageManager 
+             ORDER BY count DESC 
+             LIMIT ?`,
+            [operationType, limit]
+        );
+        return rows.map((row: any) => [
+            row.PackageId,
+            row.PackageSource,
+            row.PackageManager,
+            row.count
+        ]);
+    }
+
+    static combineRankings(...rankings: Array<Array<[string, string, string, number]>>): [string, string, string, number][] {
+        const combinedMap: Record<string, number> = {};
+        for (const ranking of rankings) {
+            for (const entry of ranking) {
+                const key = `${entry[0]}|${entry[1]}|${entry[2]}`;
+                combinedMap[key] = (combinedMap[key] || 0) + entry[3];
+            }
+        }
+        // Convert to array and sort by count descending
+        return Object.entries(combinedMap)
+            .map(([key, count]) => {
+                const [packageId, sourceName, managerName] = key.split('|');
+                return [packageId, sourceName, managerName, count] as [string, string, string, number];
+            })
+            .sort((a, b) => b[3] - a[3]);
+    }
+
+    static async getShareMap(key: string): Promise<Record<string, number>> {
+        const rows = await this.getAllRows(
+            `SELECT SubKey, Value FROM RawCounters WHERE Key = ?`,
+            [key]
+        );
+        const map: Record<string, number> = {};
+        for (const row of rows) {
+            map[row['SubKey']] = row.Value;
+        }
+        return map;
+    }
+
+    static async getOperationCountMap(operationType: number): Promise<Record<string, number>> {
+        // Map: "<PackageManager>_<Result>" => count
+        const rows = await this.getAllRows(
+            `SELECT PackageManager, OperationResult, SUM(EventCount) as count
+             FROM Operations
+             WHERE OperationType = ?
+             GROUP BY PackageManager, OperationResult`,
+            [operationType]
+        );
+        const map: Record<string, number> = {};
+        for (const row of rows) {
+            // Try to resolve OperationResult to string if possible
+            let resultStr = typeof OperationResult === "object" && OperationResult !== null
+                ? Object.keys(OperationResult).find(k => (OperationResult as any)[k] === row.OperationResult)
+                : row.OperationResult;
+            if (!resultStr) resultStr = String(row.OperationResult);
+            if (resultStr == "0") resultStr = "SUCCEEDED";
+            else if (resultStr == "1") resultStr = "FAILED";
+            map[`${row.PackageManager}_${resultStr}`] = row.count;
+        }
+        return map;
+    }
+
+    // --- Main methods ---
+
     static UpdateUser(
         identifier: string, 
         version: string, 
@@ -83,36 +175,17 @@ export class MainDB {
     }
 
     static async GenerateReport(rank_size: number): Promise<object> {
-        const db = this.DB;
         const timestamp_utc_seconds = Math.floor(Date.now() / 1000);
 
-        function getSingleValue(sql: string, params: any[]): Promise<any> {
-            return new Promise((resolve, reject) => {
-                db.get(sql, params, (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row);
-                });
-            });
-        }
-
-        function getAllRows(sql: string, params: any[] = []): Promise<any[]> {
-            return new Promise((resolve, reject) => {
-                db.all(sql, params, (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows);
-                });
-            });
-        }
-
         // Active users in the last USER_ACTIVITY_PERIOD seconds
-        const activeUsersRow = await getSingleValue(
+        const activeUsersRow = await this.getSingleValue(
             `SELECT COUNT(*) as count FROM Users WHERE LastConnection > ?`,
             [Date.now() - Settings.USER_ACTIVITY_PERIOD * 1000]
         );
         const active_users = activeUsersRow?.count ?? 0;
 
         // Average last ping time delta (in seconds)
-        const avgTimeRow = await getSingleValue(
+        const avgTimeRow = await this.getSingleValue(
             `SELECT AVG(LastConnection) as avgTime FROM Users WHERE LastConnection > ?`,
             [Date.now() - Settings.USER_ACTIVITY_PERIOD * 1000]
         );
@@ -124,7 +197,7 @@ export class MainDB {
         }
 
         // Active versions
-        const versionsRows = await getAllRows(
+        const versionsRows = await this.getAllRows(
             `SELECT ClientVersion, COUNT(*) as count FROM Users GROUP BY ClientVersion`
         );
         const active_versions: Record<string, number> = {};
@@ -133,7 +206,7 @@ export class MainDB {
         }
 
         // Active languages
-        const languagesRows = await getAllRows(
+        const languagesRows = await this.getAllRows(
             `SELECT Language, COUNT(*) as count FROM Users GROUP BY Language`
         );
         const active_languages: Record<string, number> = {};
@@ -142,10 +215,9 @@ export class MainDB {
         }
 
         // Active managers (bitmask)
-        const managersRows = await getAllRows(
+        const managersRows = await this.getAllRows(
             `SELECT ActiveManagers FROM Users`
         );
-        // Determine the maximum number of bits you want to track, e.g., 32
         const MANAGER_BITS = 32;
         const active_managers: number[] = Array(MANAGER_BITS).fill(0);
         for (const row of managersRows) {
@@ -158,7 +230,7 @@ export class MainDB {
         }
 
         // Active settings (bitmask)
-        const settingsRows = await getAllRows(
+        const settingsRows = await this.getAllRows(
             `SELECT ActiveSettings FROM Users`
         );
         const SETTINGS_BITS = 32;
@@ -173,100 +245,25 @@ export class MainDB {
         }
 
         // Rankings (top N by EventCount)
-        async function getRanking(operationType: number, limit: number): Promise<[string, string, string, number][]> {
-            const rows = await getAllRows(
-            `SELECT PackageId, PackageSource, PackageManager, SUM(EventCount) as count 
-             FROM Operations 
-             WHERE OperationType = ? 
-             GROUP BY PackageId, PackageSource, PackageManager 
-             ORDER BY count DESC 
-             LIMIT ?`,
-            [operationType, limit]
-            );
-            return rows.map((row: any) => [
-            row.PackageId,
-            row.PackageSource,
-            row.PackageManager,
-            row.count
-            ]);
-        }
+        const _installed_ranking = await this.getRanking(OperationType.INSTALL, rank_size);
+        const _downloaded_ranking = await this.getRanking(OperationType.DOWNLOAD, rank_size);
+        const updated_ranking = await this.getRanking(OperationType.UPDATE, rank_size);
+        const uninstalled_ranking = await this.getRanking(OperationType.UNINSTALL, rank_size);
 
-        // Combine installed, downloaded, and updated rankings by summing counts for each [packageId, sourceName, managerName]
-        function combineRankings(...rankings: Array<Array<[string, string, string, number]>>): [string, string, string, number][] {
-            const combinedMap: Record<string, number> = {};
-            for (const ranking of rankings) {
-            for (const entry of ranking) {
-                const key = `${entry[0]}|${entry[1]}|${entry[2]}`;
-                combinedMap[key] = (combinedMap[key] || 0) + entry[3];
-            }
-            }
-            // Convert to array and sort by count descending
-            return Object.entries(combinedMap)
-            .map(([key, count]) => {
-                const [packageId, sourceName, managerName] = key.split('|');
-                return [packageId, sourceName, managerName, count] as [string, string, string, number];
-            })
-            .sort((a, b) => b[3] - a[3])
-            .slice(0, rank_size);
-        }
+        const installed_ranking = this.combineRankings(_installed_ranking, _downloaded_ranking).slice(0, rank_size);
+        const popular_ranking = this.combineRankings(installed_ranking, updated_ranking).slice(0, rank_size);
 
-        const _installed_ranking = await getRanking(OperationType.INSTALL, rank_size);
-        const _downloaded_ranking = await getRanking(OperationType.DOWNLOAD, rank_size);
-        const updated_ranking = await getRanking(OperationType.UPDATE, rank_size);
-        const uninstalled_ranking = await getRanking(OperationType.UNINSTALL, rank_size);
+        // Share maps and operation counts
+        const imported_bundles = await this.getShareMap('importBundle');
+        const exported_bundles = await this.getShareMap('exportBundle');
+        //const install_reason = await this.getShareMap('install_reason');
 
-        const installed_ranking = combineRankings(_installed_ranking, _downloaded_ranking);
-        const popular_ranking = combineRankings(installed_ranking, updated_ranking);
-
-        // Helper for share maps
-        async function getShareMap(key: string) {
-            const rows = await getAllRows(
-            `SELECT SubKey, Value FROM RawCounters WHERE Key = ?`,
-            [key]
-            );
-            const map: Record<string, number> = {};
-            for (const row of rows) {
-            map[row['SubKey']] = row.Value;
-            }
-            return map;
-        }
-
-        // Example share maps (replace with actual keys/columns as needed)
-        const imported_bundles = await getShareMap('importBundle');
-        const exported_bundles = await getShareMap('exportBundle');
-        //const install_reason = await getShareMap('install_reason');
-        
-        // Aggregate install_count, download_count, update_count, uninstall_count from Operations table
-        async function getOperationCountMap(operationType: number): Promise<Record<string, number>> {
-            // Map: "<PackageManager>_<Result>" => count
-            const rows = await getAllRows(
-            `SELECT PackageManager, OperationResult, SUM(EventCount) as count
-             FROM Operations
-             WHERE OperationType = ?
-             GROUP BY PackageManager, OperationResult`,
-            [operationType]
-            );
-            const map: Record<string, number> = {};
-            for (const row of rows) {
-            // Try to resolve OperationResult to string if possible
-            let resultStr = typeof OperationResult === "object" && OperationResult !== null
-                ? Object.keys(OperationResult).find(k => (OperationResult as any)[k] === row.OperationResult)
-                : row.OperationResult;
-            if (!resultStr) resultStr = String(row.OperationResult);
-            if (resultStr == "0") resultStr = "SUCCEEDED";
-            else if (resultStr == "1") resultStr = "FAILED";
-            else console.log(resultStr, typeof(resultStr))
-            map[`${row.PackageManager}_${resultStr}`] = row.count;
-            }
-            return map;
-        }
-
-        const install_count = await getOperationCountMap(OperationType.INSTALL);
-        const download_count = await getOperationCountMap(OperationType.DOWNLOAD);
-        const update_count = await getOperationCountMap(OperationType.UPDATE);
-        const uninstall_count = await getOperationCountMap(OperationType.UNINSTALL);
-        const shown_package_details = await getShareMap('packageDetails');
-        const shared_packages = await getShareMap('sharedPackage');
+        const install_count = await this.getOperationCountMap(OperationType.INSTALL);
+        const download_count = await this.getOperationCountMap(OperationType.DOWNLOAD);
+        const update_count = await this.getOperationCountMap(OperationType.UPDATE);
+        const uninstall_count = await this.getOperationCountMap(OperationType.UNINSTALL);
+        const shown_package_details = await this.getShareMap('packageDetails');
+        const shared_packages = await this.getShareMap('sharedPackage');
 
         return {
             timestamp_utc_seconds,
@@ -292,12 +289,22 @@ export class MainDB {
     }
 
     static async GenerateRankings(rank_size: number): Promise<object> {
+        const timestamp_utc_seconds = Math.floor(Date.now() / 1000);
+
+        const _installed_ranking = await this.getRanking(OperationType.INSTALL, rank_size);
+        const _downloaded_ranking = await this.getRanking(OperationType.DOWNLOAD, rank_size);
+        const updated_ranking = await this.getRanking(OperationType.UPDATE, rank_size);
+        const uninstalled_ranking = await this.getRanking(OperationType.UNINSTALL, rank_size);
+
+        const installed_ranking = this.combineRankings(_installed_ranking, _downloaded_ranking).slice(0, rank_size);
+        const popular_ranking = this.combineRankings(installed_ranking, updated_ranking).slice(0, rank_size);
+
         return {
-            timestamp_utc_seconds: Math.floor(new Date().getTime() / 1000),
-            // popular: await this.PopularRanking.GetProgramRanking(rank_size),
-            // installed: await this.InstallsRanking.GetProgramRanking(rank_size),
-            // uninstalled: await this.UninstalledRanking.GetProgramRanking(rank_size),
-        }
+            timestamp_utc_seconds,
+            installed_ranking,
+            popular_ranking,
+            uninstalled_ranking,
+        };
     }
 
     static async SaveResultsIfFlagSet()
