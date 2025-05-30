@@ -1,37 +1,24 @@
-import * as fs from 'node:fs';
-// import { Database } from "bun:sqlite";
-import pkg from 'sqlite3';
-const { Database } = pkg;
+import { Database } from "bun:sqlite";
+import * as fs from "fs";
 
 import { OperationResult, OperationType, Utils } from '../Utils.ts';
 import { Settings } from '../Settings.ts';
 
 export class MainDB {
-
     static DB = new Database(`${Settings.DATA_FOLDER}/database.db`);
 
     // --- Extracted helper methods ---
 
-    static getSingleValue(sql: string, params: any[] = []): Promise<any> {
-        return new Promise((resolve, reject) => {
-            this.DB.get(sql, params, (err, row) => {
-                if (err) reject(err);
-                else resolve(row);
-            });
-        });
+    static getSingleValue(sql: string, params: any[] = []): any {
+        return this.DB.query(sql).get(...params);
     }
 
-    static getAllRows(sql: string, params: any[] = []): Promise<any[]> {
-        return new Promise((resolve, reject) => {
-            this.DB.all(sql, params, (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
+    static getAllRows(sql: string, params: any[] = []): any[] {
+        return this.DB.query(sql).all(...params);
     }
 
-    static async getRanking(operationType: number, limit: number): Promise<[string, string, string, number][]> {
-        const rows = await this.getAllRows(
+    static getRanking(operationType: number, limit: number): [string, string, string, number][] {
+        const rows = this.getAllRows(
             `SELECT PackageId, PackageSource, PackageManager, SUM(EventCount) as count 
              FROM Operations 
              WHERE OperationType = ? 
@@ -65,8 +52,8 @@ export class MainDB {
             .sort((a, b) => b[3] - a[3]);
     }
 
-    static async getShareMap(key: string): Promise<Record<string, number>> {
-        const rows = await this.getAllRows(
+    static getShareMap(key: string): Record<string, number> {
+        const rows = this.getAllRows(
             `SELECT SubKey, Value FROM RawCounters WHERE Key = ?`,
             [key]
         );
@@ -77,9 +64,9 @@ export class MainDB {
         return map;
     }
 
-    static async getOperationCountMap(operationType: number): Promise<Record<string, number>> {
+    static getOperationCountMap(operationType: number): Record<string, number> {
         // Map: "<PackageManager>_<Result>" => count
-        const rows = await this.getAllRows(
+        const rows = this.getAllRows(
             `SELECT PackageManager, OperationResult, SUM(EventCount) as count
              FROM Operations
              WHERE OperationType = ?
@@ -88,7 +75,6 @@ export class MainDB {
         );
         const map: Record<string, number> = {};
         for (const row of rows) {
-            // Try to resolve OperationResult to string if possible
             let resultStr = typeof OperationResult === "object" && OperationResult !== null
                 ? Object.keys(OperationResult).find(k => (OperationResult as any)[k] === row.OperationResult)
                 : row.OperationResult;
@@ -107,15 +93,16 @@ export class MainDB {
         version: string, 
         activeManagers: number, 
         activeSettings: number, 
-        language: string) 
-    {
+        language: string
+    ) {
         let intIdentifier = Utils.IntegerizeIdentifier(identifier);
         Utils.TestSQLSafety(version);
         Utils.TestSQLSafety(language);
 
-        this.DB.exec(
+        this.DB.run(
             `INSERT OR REPLACE INTO Users (Identifier, LastConnection, ClientVersion, ActiveSettings, ActiveManagers, Language) 
-             VALUES (${intIdentifier}, ${Date.now()}, '${version}', '${activeSettings}', '${activeManagers}', '${language}');`
+             VALUES (?, ?, ?, ?, ?, ?);`,
+            [intIdentifier, Date.now(), version, activeSettings, activeManagers, language]
         );
     }
 
@@ -127,65 +114,57 @@ export class MainDB {
         operationType: number,
         operationResult: number,
         operationReferral: string,
-    )
-    {
+    ) {
         Utils.TestSQLSafety(packageId);
         Utils.TestSQLSafety(packageSource);
         Utils.TestSQLSafety(packageManager);
         Utils.TestSQLSafety(clientVersion);
         Utils.TestSQLSafety(operationReferral);
 
-        this.DB.exec(
+        this.DB.run(
             `INSERT INTO Operations (PackageId, PackageSource, PackageManager, OperationType, 
                 OperationResult, ClientVersion, OperationReferral, EventCount) 
-             VALUES ('${packageId}', '${packageSource}', '${packageManager}', ${operationType}, 
-                '${operationResult}', '${clientVersion}', '${operationReferral}', 1)
+             VALUES (?, ?, ?, ?, ?, ?, ?, 1)
              ON CONFLICT(PackageId, PackageSource, PackageManager, OperationType, 
                 OperationResult, ClientVersion, OperationReferral) 
-             DO UPDATE SET EventCount = EventCount + 1;`
+             DO UPDATE SET EventCount = EventCount + 1;`,
+            [packageId, packageSource, packageManager, operationType, operationResult, clientVersion, operationReferral]
         );
     }
 
-    static IncrementCounter(key: string, subkey: string)
-    {
+    static IncrementCounter(key: string, subkey: string) {
         Utils.TestSQLSafety(key);
         Utils.TestSQLSafety(subkey);
 
-        this.DB.exec(
+        this.DB.run(
             `INSERT INTO RawCounters (Key, SubKey, Value) 
-             VALUES ('${key}', '${subkey}', 1) 
+             VALUES (?, ?, 1) 
              ON CONFLICT(Key, SubKey) 
-             DO UPDATE SET Value = Value + 1;`
+             DO UPDATE SET Value = Value + 1;`,
+            [key, subkey]
         );
     }
 
     static PurgeUsers() {
-        /*const tenDaysAgo = (new Date()).getTime() - (Settings.USER_ACTIVITY_PERIOD * 1000);
-        this.ActiveUsers.Data.forEach((date, identifier) => {
-            if (date < tenDaysAgo) {
-                console.info(`Deleting identifier ${identifier} from DB due to inactivity`);
-                this.DB_PerUser.forEach((setting) => setting.Delete(identifier));
-            }
-        });*/
+        // Not implemented
     }
 
-    static ClearRankingAdditionCache(): void
-    {
-        //this.DB_Rankings.forEach((db) => db.ClearRecentAdditionsList());
+    static ClearRankingAdditionCache(): void {
+        // Not implemented
     }
 
-    static async GenerateReport(rank_size: number): Promise<object> {
+    static GenerateReport(rank_size: number): object {
         const timestamp_utc_seconds = Math.floor(Date.now() / 1000);
 
         // Active users in the last USER_ACTIVITY_PERIOD seconds
-        const activeUsersRow = await this.getSingleValue(
+        const activeUsersRow = this.getSingleValue(
             `SELECT COUNT(*) as count FROM Users WHERE LastConnection > ?`,
             [Date.now() - Settings.USER_ACTIVITY_PERIOD * 1000]
         );
         const active_users = activeUsersRow?.count ?? 0;
 
         // Average last ping time delta (in seconds)
-        const avgTimeRow = await this.getSingleValue(
+        const avgTimeRow = this.getSingleValue(
             `SELECT AVG(LastConnection) as avgTime FROM Users WHERE LastConnection > ?`,
             [Date.now() - Settings.USER_ACTIVITY_PERIOD * 1000]
         );
@@ -197,7 +176,7 @@ export class MainDB {
         }
 
         // Active versions
-        const versionsRows = await this.getAllRows(
+        const versionsRows = this.getAllRows(
             `SELECT ClientVersion, COUNT(*) as count FROM Users GROUP BY ClientVersion`
         );
         const active_versions: Record<string, number> = {};
@@ -206,7 +185,7 @@ export class MainDB {
         }
 
         // Active languages
-        const languagesRows = await this.getAllRows(
+        const languagesRows = this.getAllRows(
             `SELECT Language, COUNT(*) as count FROM Users GROUP BY Language`
         );
         const active_languages: Record<string, number> = {};
@@ -215,7 +194,7 @@ export class MainDB {
         }
 
         // Active managers (bitmask)
-        const managersRows = await this.getAllRows(
+        const managersRows = this.getAllRows(
             `SELECT ActiveManagers FROM Users`
         );
         const MANAGER_BITS = 32;
@@ -230,7 +209,7 @@ export class MainDB {
         }
 
         // Active settings (bitmask)
-        const settingsRows = await this.getAllRows(
+        const settingsRows = this.getAllRows(
             `SELECT ActiveSettings FROM Users`
         );
         const SETTINGS_BITS = 32;
@@ -245,25 +224,25 @@ export class MainDB {
         }
 
         // Rankings (top N by EventCount)
-        const _installed_ranking = await this.getRanking(OperationType.INSTALL, rank_size);
-        const _downloaded_ranking = await this.getRanking(OperationType.DOWNLOAD, rank_size);
-        const updated_ranking = await this.getRanking(OperationType.UPDATE, rank_size);
-        const uninstalled_ranking = await this.getRanking(OperationType.UNINSTALL, rank_size);
+        const _installed_ranking = this.getRanking(OperationType.INSTALL, rank_size);
+        const _downloaded_ranking = this.getRanking(OperationType.DOWNLOAD, rank_size);
+        const updated_ranking = this.getRanking(OperationType.UPDATE, rank_size);
+        const uninstalled_ranking = this.getRanking(OperationType.UNINSTALL, rank_size);
 
         const installed_ranking = this.combineRankings(_installed_ranking, _downloaded_ranking).slice(0, rank_size);
         const popular_ranking = this.combineRankings(installed_ranking, updated_ranking).slice(0, rank_size);
 
         // Share maps and operation counts
-        const imported_bundles = await this.getShareMap('importBundle');
-        const exported_bundles = await this.getShareMap('exportBundle');
-        //const install_reason = await this.getShareMap('install_reason');
+        const imported_bundles = this.getShareMap('importBundle');
+        const exported_bundles = this.getShareMap('exportBundle');
+        //const install_reason = this.getShareMap('install_reason');
 
-        const install_count = await this.getOperationCountMap(OperationType.INSTALL);
-        const download_count = await this.getOperationCountMap(OperationType.DOWNLOAD);
-        const update_count = await this.getOperationCountMap(OperationType.UPDATE);
-        const uninstall_count = await this.getOperationCountMap(OperationType.UNINSTALL);
-        const shown_package_details = await this.getShareMap('packageDetails');
-        const shared_packages = await this.getShareMap('sharedPackage');
+        const install_count = this.getOperationCountMap(OperationType.INSTALL);
+        const download_count = this.getOperationCountMap(OperationType.DOWNLOAD);
+        const update_count = this.getOperationCountMap(OperationType.UPDATE);
+        const uninstall_count = this.getOperationCountMap(OperationType.UNINSTALL);
+        const shown_package_details = this.getShareMap('packageDetails');
+        const shared_packages = this.getShareMap('sharedPackage');
 
         return {
             timestamp_utc_seconds,
@@ -288,13 +267,13 @@ export class MainDB {
         };
     }
 
-    static async GenerateRankings(rank_size: number): Promise<object> {
+    static GenerateRankings(rank_size: number): object {
         const timestamp_utc_seconds = Math.floor(Date.now() / 1000);
 
-        const _installed_ranking = await this.getRanking(OperationType.INSTALL, rank_size);
-        const _downloaded_ranking = await this.getRanking(OperationType.DOWNLOAD, rank_size);
-        const updated_ranking = await this.getRanking(OperationType.UPDATE, rank_size);
-        const uninstalled_ranking = await this.getRanking(OperationType.UNINSTALL, rank_size);
+        const _installed_ranking = this.getRanking(OperationType.INSTALL, rank_size);
+        const _downloaded_ranking = this.getRanking(OperationType.DOWNLOAD, rank_size);
+        const updated_ranking = this.getRanking(OperationType.UPDATE, rank_size);
+        const uninstalled_ranking = this.getRanking(OperationType.UNINSTALL, rank_size);
 
         const installed_ranking = this.combineRankings(_installed_ranking, _downloaded_ranking).slice(0, rank_size);
         const popular_ranking = this.combineRankings(installed_ranking, updated_ranking).slice(0, rank_size);
@@ -307,14 +286,13 @@ export class MainDB {
         };
     }
 
-    static async SaveResultsIfFlagSet()
-    {
+    static SaveResultsIfFlagSet() {
         try {
             const flagPath = `${Settings.FLAGS_FOLDER}/${Settings.SAVE_RESULTS_FLAG}`;
             if(fs.existsSync(flagPath))
             {            
                 fs.unlinkSync(flagPath);
-                let contents: string = JSON.stringify(await this.GenerateReport(15));
+                let contents: string = JSON.stringify(this.GenerateReport(15));
                 const fileName = `${Math.floor(new Date().getTime() / 1000)}.json`;
                 const filePath = `${Settings.RESULTS_FOLDER}/${fileName}`;
                 fs.writeFileSync(filePath, contents);
@@ -326,14 +304,13 @@ export class MainDB {
         }
     }
 
-    static async SaveRankingsIfFlagSet()
-    {
+    static SaveRankingsIfFlagSet() {
         try {
             const flagPath = `${Settings.FLAGS_FOLDER}/${Settings.SAVE_RANKINGS_FLAG}`;
             if(fs.existsSync(flagPath))
             {            
                 fs.unlinkSync(flagPath);
-                let contents: string = JSON.stringify(await this.GenerateRankings(50));
+                let contents: string = JSON.stringify(this.GenerateRankings(50));
                 const fileName = `LiveRanking.json`;
                 const filePath = `${Settings.RESULTS_FOLDER}/${fileName}`;
                 fs.writeFileSync(filePath, contents);
@@ -344,5 +321,4 @@ export class MainDB {
             console.error(`Failed to save results file due to ${e}`);
         }
     }
-
 }
