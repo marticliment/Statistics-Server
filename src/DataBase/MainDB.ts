@@ -177,7 +177,8 @@ export class MainDB {
 
         // Active versions
         const versionsRows = this.getAllRows(
-            `SELECT ClientVersion, COUNT(*) as count FROM Users GROUP BY ClientVersion`
+            `SELECT ClientVersion, COUNT(*) as count FROM Users WHERE LastConnection > ? GROUP BY ClientVersion`,
+            [Date.now() - Settings.USER_ACTIVITY_PERIOD * 1000]
         );
         const active_versions: Record<string, number> = {};
         for (const row of versionsRows) {
@@ -186,7 +187,8 @@ export class MainDB {
 
         // Active languages
         const languagesRows = this.getAllRows(
-            `SELECT Language, COUNT(*) as count FROM Users GROUP BY Language`
+            `SELECT Language, COUNT(*) as count FROM Users WHERE LastConnection > ? GROUP BY Language`,
+            [Date.now() - Settings.USER_ACTIVITY_PERIOD * 1000]
         );
         const active_languages: Record<string, number> = {};
         for (const row of languagesRows) {
@@ -195,7 +197,8 @@ export class MainDB {
 
         // Active managers (bitmask)
         const managersRows = this.getAllRows(
-            `SELECT ActiveManagers FROM Users`
+            `SELECT ActiveManagers FROM Users WHERE LastConnection > ?`,
+            [Date.now() - Settings.USER_ACTIVITY_PERIOD * 1000]
         );
         const MANAGER_BITS = 32;
         const active_managers: number[] = Array(MANAGER_BITS).fill(0);
@@ -210,7 +213,8 @@ export class MainDB {
 
         // Active settings (bitmask)
         const settingsRows = this.getAllRows(
-            `SELECT ActiveSettings FROM Users`
+            `SELECT ActiveSettings FROM Users WHERE LastConnection > ?`,
+            [Date.now() - Settings.USER_ACTIVITY_PERIOD * 1000]
         );
         const SETTINGS_BITS = 32;
         const active_settings: number[] = Array(SETTINGS_BITS).fill(0);
