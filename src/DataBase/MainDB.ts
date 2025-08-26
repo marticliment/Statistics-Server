@@ -64,15 +64,31 @@ export class MainDB {
         return map;
     }
 
-    static getOperationCountMap(operationType: number): Record<string, number> {
+    static getOperationVersions(): string[] {
+        var contents = this.getAllRows(`SELECT DISTINCT ClientVersion FROM Operations`);
+        return contents.map((row: any) => row.ClientVersion);
+    }
+
+    static getOperationCountMap(operationType: number, op_version: string): Record<string, number> {
         // Map: "<PackageManager>_<Result>" => count
-        const rows = this.getAllRows(
-            `SELECT PackageManager, OperationResult, SUM(EventCount) as count
-             FROM Operations
-             WHERE OperationType = ?
-             GROUP BY PackageManager, OperationResult`,
-            [operationType]
-        );
+        let rows: any[] = [];
+        if (op_version == "All" || op_version == "") {
+            rows = this.getAllRows(
+                `SELECT PackageManager, OperationResult, SUM(EventCount) as count
+                FROM Operations
+                WHERE OperationType = ?
+                GROUP BY PackageManager, OperationResult`,
+                [operationType]
+            );
+        } else {
+            rows = this.getAllRows(
+                `SELECT PackageManager, OperationResult, SUM(EventCount) as count
+                FROM Operations
+                WHERE OperationType = ? and ClientVersion = ?
+                GROUP BY PackageManager, OperationResult`,
+                [operationType, op_version]
+            );
+        }
         const map: Record<string, number> = {};
         for (const row of rows) {
             let resultStr = typeof OperationResult === "object" && OperationResult !== null
@@ -89,10 +105,10 @@ export class MainDB {
     // --- Main methods ---
 
     static UpdateUser(
-        identifier: string, 
-        version: string, 
-        activeManagers: number, 
-        activeSettings: number, 
+        identifier: string,
+        version: string,
+        activeManagers: number,
+        activeSettings: number,
         language: string
     ) {
         let intIdentifier = Utils.IntegerizeIdentifier(identifier);
@@ -153,7 +169,7 @@ export class MainDB {
         // Not implemented
     }
 
-    static GenerateReport(rank_size: number): object {
+    static GenerateReport(rank_size: number, op_version: string): object {
         const timestamp_utc_seconds = Math.floor(Date.now() / 1000);
 
         // Active users in the last USER_ACTIVITY_PERIOD seconds
@@ -241,10 +257,11 @@ export class MainDB {
         const exported_bundles = this.getShareMap('exportBundle');
         //const install_reason = this.getShareMap('install_reason');
 
-        const install_count = this.getOperationCountMap(OperationType.INSTALL);
-        const download_count = this.getOperationCountMap(OperationType.DOWNLOAD);
-        const update_count = this.getOperationCountMap(OperationType.UPDATE);
-        const uninstall_count = this.getOperationCountMap(OperationType.UNINSTALL);
+        const operation_version = { op_version };
+        const install_count = this.getOperationCountMap(OperationType.INSTALL, op_version);
+        const download_count = this.getOperationCountMap(OperationType.DOWNLOAD, op_version);
+        const update_count = this.getOperationCountMap(OperationType.UPDATE, op_version);
+        const uninstall_count = this.getOperationCountMap(OperationType.UNINSTALL, op_version);
         const shown_package_details = this.getShareMap('packageDetails');
         const shared_packages = this.getShareMap('sharedPackage');
 
@@ -256,6 +273,7 @@ export class MainDB {
             active_languages,
             active_managers,
             active_settings,
+            operation_version,
             installed_ranking,
             popular_ranking,
             uninstalled_ranking,
@@ -266,6 +284,7 @@ export class MainDB {
             update_count,
             install_count,
             uninstall_count,
+
             shown_package_details,
             shared_packages,
         };
@@ -293,17 +312,15 @@ export class MainDB {
     static SaveResultsIfFlagSet() {
         try {
             const flagPath = `${Settings.FLAGS_FOLDER}/${Settings.SAVE_RESULTS_FLAG}`;
-            if(fs.existsSync(flagPath))
-            {            
+            if (fs.existsSync(flagPath)) {
                 fs.unlinkSync(flagPath);
-                let contents: string = JSON.stringify(this.GenerateReport(15));
+                let contents: string = JSON.stringify(this.GenerateReport(15, ""));
                 const fileName = `${Math.floor(new Date().getTime() / 1000)}.json`;
                 const filePath = `${Settings.RESULTS_FOLDER}/${fileName}`;
                 fs.writeFileSync(filePath, contents);
             }
-        } 
-        catch (e)
-        {
+        }
+        catch (e) {
             console.error(`Failed to save results file due to ${e}`);
         }
     }
@@ -311,17 +328,15 @@ export class MainDB {
     static SaveRankingsIfFlagSet() {
         try {
             const flagPath = `${Settings.FLAGS_FOLDER}/${Settings.SAVE_RANKINGS_FLAG}`;
-            if(fs.existsSync(flagPath))
-            {            
+            if (fs.existsSync(flagPath)) {
                 fs.unlinkSync(flagPath);
                 let contents: string = JSON.stringify(this.GenerateRankings(50));
                 const fileName = `LiveRanking.json`;
                 const filePath = `${Settings.RESULTS_FOLDER}/${fileName}`;
                 fs.writeFileSync(filePath, contents);
             }
-        } 
-        catch (e)
-        {
+        }
+        catch (e) {
             console.error(`Failed to save results file due to ${e}`);
         }
     }

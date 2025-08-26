@@ -17,7 +17,7 @@ const server = http.createServer((req, res) => {
             res.end();
             return;
         }
-        
+
 
         // TODO: Prevent API abuse
         res.setHeader('Content-Type', 'text/json');
@@ -55,7 +55,7 @@ const server = http.createServer((req, res) => {
             case "/package/share":
                 CounterAdder.SharedPackage(req, res);
                 break;
-                
+
             case "/bundles/export":
                 CounterAdder.ExportBundle(req, res);
                 break;
@@ -65,15 +65,20 @@ const server = http.createServer((req, res) => {
                 break;
 
 
-            
+
             // Gets the report for a given id
             case "/report/get-public":
                 StatisticsResults.GetReportFromId(req, res);
                 break;
-            
+
             // Lists the available reports
             case "/report/list-public":
                 StatisticsResults.ReturnAvailableResults(req, res);
+                break;
+
+            // Lists the available versions
+            case "/report/list-versions":
+                StatisticsResults.ReturnAvailableVersions(req, res);
                 break;
 
 
@@ -98,8 +103,7 @@ const server = http.createServer((req, res) => {
         }
         res.end();
     }
-    catch (ex) 
-    {
+    catch (ex) {
         try {
             res.statusCode = 500;
             res.end();

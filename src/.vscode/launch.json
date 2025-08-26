@@ -15,10 +15,10 @@
         "skipFiles": [
             "<node_internals>/**"
         ],
-        "type": "node"
+        "type": "bun"
     },
         {
-            "type": "node",
+            "type": "bun",
             "request": "launch",
             "name": "Launch Program",
             "skipFiles": [

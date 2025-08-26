@@ -17,6 +17,8 @@ export class PackageOPs
             const source = Utils.GetHeader(req, "sourceName");
             const result = Utils.GetHeader(req, "operationResult");
             const event = Utils.GetHeader(req, "eventSource");
+            let clientVersion = Utils.GetHeader(req, "clientVersion");
+            if(clientVersion == "") clientVersion = "234";
                     
             if(Utils.Invalid(user_id) || Utils.Invalid(program_id) || Utils.Invalid(manager) || Utils.Invalid(source) || Utils.Invalid(result))
             {
@@ -24,9 +26,8 @@ export class PackageOPs
             }
             else
             {
-                let version = "234";
                 let res = result == "SUCCESS"? OperationResult.SUCCEEDED: OperationResult.FAILED;
-                MainDB.AddOperation(version, program_id, source, manager, operationType, res, event)
+                MainDB.AddOperation(clientVersion, program_id, source, manager, operationType, res, event)
             }
         } 
         catch (err)
