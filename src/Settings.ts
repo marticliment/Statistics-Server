@@ -51,7 +51,7 @@ export class Settings
 
 
     // Clients may do up to 10 requests per second
-    static MAX_REQUESTS_PER_SECOND = 10;
+    static MAX_REQUESTS_PER_SECOND = 100;
 
     // Banned users may be clear every X seconds
     static USER_BAN_PARDON_TIMEOUT = 10; 
